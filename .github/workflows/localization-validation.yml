@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 env:
-  SOURCE_SHA: 622d601fc749fe75d2e84919a4800cc2c77a7d67
+  SOURCE_SHA: 5120dc401fa0077a3eb358125c920f55f1fe36c8
   AMAYA_VALIDATION_PACKAGE: com.amaya.intelligence.debug.fix
 jobs:
   localization:

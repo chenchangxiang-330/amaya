@@ -15,8 +15,20 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 import java.util.regex.Pattern
+import com.amaya.intelligence.data.remote.api.ActiveModelSelection
+import com.amaya.intelligence.data.remote.api.AiSettingsManager
+import com.amaya.intelligence.data.remote.api.ConfiguredModel
+import com.amaya.intelligence.data.remote.api.ProviderConnection
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
+import org.json.JSONObject
+import java.net.InetAddress
+import java.net.ServerSocket
+import java.util.concurrent.CopyOnWriteArrayList
 
-/** Fork-only UI checks. No live model or mock server is used. */
+/** Fork-only UI checks. No live model response is used. The capability regression uses
+ * a loopback catalog fixture and records image requests, returning an intentional error. */
 @RunWith(AndroidJUnit4::class)
 class LocalizationSmokeTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
@@ -455,8 +467,154 @@ class LocalizationSmokeTest {
         capture("language-dialog-chinese-large-font")
     }
 
+    @Test fun refreshedImageCapabilityReachesProvider() = recorded("image-capability-refresh") {
+        CatalogFixture().use { fixture ->
+            val manager = AiSettingsManager(context.applicationContext)
+            val savedModel = ConfiguredModel(
+                id = "deepseek-flash", displayName = "图片能力回归模型",
+                contextWindowTokens = 32_768, maxOutputTokens = 1_024,
+                supportsTools = false, supportsImages = false
+            )
+            val connection = ProviderConnection(
+                id = "image-capability-regression", name = "图片能力回归服务",
+                providerId = "custom_openai_compatible", baseUrl = fixture.baseUrl,
+                visibleModels = listOf(savedModel)
+            )
+            runBlocking {
+                manager.saveConnection(connection)
+                manager.setActiveModel(ActiveModelSelection(connection.id, savedModel.id))
+            }
+            launch()
+            openProjectConversation("项目照片讨论（已重命名）")
+            seedPickerFile("能力验证照片.png", "image/png", true)
+            pickFile("能力验证照片.png")
+            val rejectedDraft = "图片被拦截时保留这段中文草稿"
+            fields(rejectedDraft)
+            desc("发送")
+            text("当前模型不支持图片，请选择支持图片的模型。")
+            assertEquals(rejectedDraft, find(By.clazz("android.widget.EditText")).text)
+            text("能力验证照片.jpg")
+            assertTrue("Local rejection must not send a request", fixture.chatRequests.isEmpty())
+            capture("image-rejection-retains-draft-and-attachment")
+
+            settings(true)
+            click("管理模型")
+            click("图片能力回归服务")
+            val refreshed = runBlocking {
+                withTimeout(15_000) {
+                    manager.settingsFlow.first { settings ->
+                        settings.connections.firstOrNull { it.id == connection.id }
+                            ?.visibleModels?.firstOrNull { it.id == savedModel.id }?.supportsImages == true
+                    }.connections.first { it.id == connection.id }.visibleModels.single()
+                }
+            }
+            assertEquals(savedModel.copy(supportsImages = true), refreshed)
+            assertTrue("Refresh must read the fixture's catalog", fixture.catalogRequests > 0)
+            capture("image-capability-refreshed-provider")
+
+            launch()
+            openProjectConversation("项目照片讨论（已重命名）")
+            pickFile("能力验证照片.png")
+            fields("请查看本地接口验证图片")
+            desc("发送")
+            val deadline = SystemClock.uptimeMillis() + 30_000
+            while (fixture.chatRequests.isEmpty() && SystemClock.uptimeMillis() < deadline) {
+                SystemClock.sleep(100)
+            }
+            assertTrue("Image request must reach the local HTTP fixture", fixture.chatRequests.isNotEmpty())
+            val request = JSONObject(fixture.chatRequests.first())
+            assertEquals("deepseek-flash", request.getString("model"))
+            val messages = request.getJSONArray("messages")
+            val message = (0 until messages.length()).map { messages.getJSONObject(it) }
+                .last { it.optString("role") == "user" }
+            val parts = message.getJSONArray("content")
+            val image = (0 until parts.length()).map { parts.getJSONObject(it) }
+                .first { it.optString("type") == "image_url" }
+            val dataUrl = image.getJSONObject("image_url").getString("url")
+            assertTrue(dataUrl.startsWith("data:image/jpeg;base64,"))
+            val bytes = android.util.Base64.decode(dataUrl.substringAfter(','), android.util.Base64.DEFAULT)
+            val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            assertNotNull("The actual request contains a decodable image", bitmap)
+            bitmap!!.recycle()
+            assertTrue(device.wait(Until.hasObject(label("无法完成操作")), 30_000))
+            assertFalse(device.hasObject(label("当前模型不支持图片，请选择支持图片的模型。")))
+            capture("image-request-reaches-local-fixture-error")
+            File(output, "image-request-fixture-result.txt").writeText(
+                "PASS\nLoopback HTTP fixture only; no real provider or successful model response.\n" +
+                "Legacy cached false repaired by provider-settings refresh; user configuration retained.\n" +
+                "model=${request.getString("model")} image_mime=image/jpeg image_bytes=${bytes.size}\n" +
+                "Chat endpoint intentionally returns HTTP 400.\n"
+            )
+        }
+    }
+
+    /** Catalog metadata and transport recorder only. Never generates a successful AI answer. */
+    private class CatalogFixture : java.io.Closeable {
+        private val server = ServerSocket(0, 8, InetAddress.getByName("127.0.0.1"))
+        val baseUrl = "http://127.0.0.1:${server.localPort}/v1"
+        val chatRequests = CopyOnWriteArrayList<String>()
+        @Volatile var catalogRequests = 0
+            private set
+        private val thread = Thread {
+            while (!server.isClosed) {
+                val socket = try { server.accept() } catch (_: java.io.IOException) { break }
+                socket.use {
+                    it.soTimeout = 10_000
+                    val input = it.getInputStream().buffered()
+                    fun line(): String {
+                        val bytes = java.io.ByteArrayOutputStream()
+                        while (true) {
+                            val value = input.read()
+                            if (value < 0 || value == 10) break
+                            if (value != 13) bytes.write(value)
+                        }
+                        return bytes.toString("UTF-8")
+                    }
+                    val requestLine = line()
+                    var contentLength = 0
+                    while (true) {
+                        val header = line()
+                        if (header.isEmpty()) break
+                        if (header.startsWith("Content-Length:", ignoreCase = true)) {
+                            contentLength = header.substringAfter(':').trim().toInt()
+                        }
+                    }
+                    val bytes = ByteArray(contentLength)
+                    var offset = 0
+                    while (offset < bytes.size) {
+                        val count = input.read(bytes, offset, bytes.size - offset)
+                        check(count > 0)
+                        offset += count
+                    }
+                    val catalog = requestLine.startsWith("GET /v1/models ")
+                    val body = if (catalog) {
+                        catalogRequests++
+                        """{"data":[{"id":"deepseek-flash","name":"DeepSeek-V4.1-Flash","input_modalities":["text","image"]}]}"""
+                    } else {
+                        if (requestLine.startsWith("POST /v1/chat/completions ")) {
+                            chatRequests.add(bytes.toString(Charsets.UTF_8))
+                        }
+                        """{"error":{"message":"Local validation fixture: no model response generated."}}"""
+                    }.toByteArray()
+                    val status = if (catalog) "200 OK" else "400 Bad Request"
+                    it.getOutputStream().apply {
+                        write(("HTTP/1.1 $status\r\nContent-Type: application/json\r\n" +
+                            "Content-Length: ${body.size}\r\nConnection: close\r\n\r\n").toByteArray())
+                        write(body)
+                        flush()
+                    }
+                }
+            }
+        }.apply { isDaemon = true; start() }
+
+        override fun close() {
+            server.close()
+            thread.join(1_000)
+        }
+    }
+
     private fun recorded(name: String, body: () -> Unit) {
-        try { body(); File(output, "$name-result.txt").writeText("PASS\nNo live API or mocked model response used.\n") }
+        try { body(); File(output, "$name-result.txt").writeText("PASS\nNo live API or successful simulated model response used.\n") }
         catch (t: Throwable) {
             capture("failure-$name")
             File(output, "$name-result.txt").writeText("FAIL: ${t.stackTraceToString()}")

@@ -57,5 +57,7 @@ set_system_locale fr-FR
 run_test unsupportedSystemFallsBackToEnglish || amaya_tests_failed=1
 adb shell settings put system font_scale 1.3
 run_test largeFontLanguageDialog || amaya_tests_failed=1
+adb shell settings put system font_scale 1.0
+run_test refreshedImageCapabilityReachesProvider || amaya_tests_failed=1
 collect_evidence
 exit "$amaya_tests_failed"
