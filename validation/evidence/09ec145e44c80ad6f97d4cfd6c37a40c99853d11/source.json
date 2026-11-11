@@ -1,8 +1,9 @@
 {
   "source_sha": "09ec145e44c80ad6f97d4cfd6c37a40c99853d11",
-  "run": "https://github.com/chenchangxiang-330/amaya/actions/runs/42988198787",
+  "run": "https://github.com/chenchangxiang-330/amaya/actions/runs/42989543324",
   "variant": "debug",
   "emulator_abi": "x86_64",
   "phone_abi": "arm64-v8a",
+  "application_id": "com.amaya.intelligence.debug.fix",
   "live_model_response_tested": false
 }

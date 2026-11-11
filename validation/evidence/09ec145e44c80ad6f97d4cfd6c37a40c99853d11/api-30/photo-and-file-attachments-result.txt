@@ -1,10 +1,11 @@
-FAIL: java.util.NoSuchElementException: Collection contains no element matching the predicate.
-	at com.amaya.intelligence.localization.LocalizationSmokeTest.projectRecord(LocalizationSmokeTest.kt:424)
-	at com.amaya.intelligence.localization.LocalizationSmokeTest.pickedPhotosAndFilesAreVisible$lambda$16(LocalizationSmokeTest.kt:295)
-	at com.amaya.intelligence.localization.LocalizationSmokeTest.$r8$lambda$UMdFvNIbT3muRG0mKHog20DyFS0(Unknown Source:0)
+FAIL: java.lang.AssertionError: Missing BySelector [TEXT='^\Q请概括中文项目资料\E(?:\n.*)?$', LONGCLICKABLE='true']. See failure screenshot.
+	at com.amaya.intelligence.localization.LocalizationSmokeTest.find(LocalizationSmokeTest.kt:36)
+	at com.amaya.intelligence.localization.LocalizationSmokeTest.openProjectConversation(LocalizationSmokeTest.kt:265)
+	at com.amaya.intelligence.localization.LocalizationSmokeTest.pickedPhotosAndFilesAreVisible$lambda$15(LocalizationSmokeTest.kt:281)
+	at com.amaya.intelligence.localization.LocalizationSmokeTest.$r8$lambda$qUvZdy9sTHUeQbzP6PMKNP72WBs(Unknown Source:0)
 	at com.amaya.intelligence.localization.LocalizationSmokeTest$$ExternalSyntheticLambda2.invoke(D8$$SyntheticClass:0)
-	at com.amaya.intelligence.localization.LocalizationSmokeTest.recorded(LocalizationSmokeTest.kt:406)
-	at com.amaya.intelligence.localization.LocalizationSmokeTest.pickedPhotosAndFilesAreVisible(LocalizationSmokeTest.kt:272)
+	at com.amaya.intelligence.localization.LocalizationSmokeTest.recorded(LocalizationSmokeTest.kt:419)
+	at com.amaya.intelligence.localization.LocalizationSmokeTest.pickedPhotosAndFilesAreVisible(LocalizationSmokeTest.kt:279)
 	at java.lang.reflect.Method.invoke(Native Method)
 	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
 	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
