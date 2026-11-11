@@ -27,7 +27,7 @@ logcat_pid=$!
 (while :; do collect_evidence 2>/dev/null || true; sleep 8; done) &
 collector_pid=$!
 run_test() {
-  adb shell am force-stop ${amaya_test_package}
+  timeout 20s adb shell am force-stop ${amaya_test_package}
   timeout 300s adb shell am instrument -w -e class "com.amaya.intelligence.localization.LocalizationSmokeTest#$1" \
     ${amaya_test_package}.test/androidx.test.runner.AndroidJUnitRunner | tee "validation/runtime/$1.log"
   if ! grep -q 'OK (1 test)' "validation/runtime/$1.log"; then
@@ -45,9 +45,9 @@ set_system_locale() {
   adb root
   adb shell setprop persist.sys.locale "$1"
   adb reboot
-  adb wait-for-device
+  timeout 90s adb wait-for-device
   for attempt in $(seq 1 90); do
-    if adb shell getprop sys.boot_completed | tr -d '\r' | grep -q '^1$'; then break; fi
+    if timeout 15s adb shell getprop sys.boot_completed | tr -d '\r' | grep -q '^1$'; then break; fi
     sleep 2
   done
 }

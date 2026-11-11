@@ -501,7 +501,11 @@ class LocalizationSmokeTest {
             // A project chat opens Settings on the Project tab.
             desc("全局")
             click("管理模型")
-            click("图片能力回归服务")
+            // The active-model subtitle also names this provider. Open its inventory row.
+            val providerRows = device.wait(Until.findObjects(label("图片能力回归服务")), 10_000)
+            assertFalse("Provider inventory row must be visible", providerRows.isNullOrEmpty())
+            providerRows!!.last().click()
+            find(By.desc("刷新模型"))
             val refreshed = runBlocking {
                 withTimeout(15_000) {
                     manager.settingsFlow.first { settings ->
