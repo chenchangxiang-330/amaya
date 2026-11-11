@@ -53,9 +53,16 @@ class LocalizationSmokeTest {
 
     private fun scrollTo(value: String): UiObject2 {
         repeat(9) {
-            device.findObject(label(value))?.let { return it }
+            device.findObject(label(value))?.let {
+                // Keep the target clear of the fixed header and floating bottom navigation.
+                if (it.visibleBounds.centerY() in device.displayHeight / 6..device.displayHeight * 4 / 5) {
+                    SystemClock.sleep(500)
+                    return text(value)
+                }
+            }
             device.swipe(device.displayWidth / 2, device.displayHeight * 3 / 4,
                 device.displayWidth / 2, device.displayHeight / 3, 30)
+            SystemClock.sleep(400)
             device.waitForIdle()
         }
         return text(value)
@@ -76,10 +83,19 @@ class LocalizationSmokeTest {
         desc(if (chinese) "设置" else "Settings")
     }
 
-    private fun language(label: String, chinese: Boolean) {
-        scrollTo(if (chinese) "语言" else "Language").click()
+    private fun openLanguage(chinese: Boolean) {
+        repeat(3) {
+            scrollTo(if (chinese) "语言" else "Language").click()
+            val marker = if (chinese) "English" else "简体中文"
+            if (device.wait(Until.hasObject(label(marker)), 2_000)) return
+        }
+        throw AssertionError("Language dialog did not open")
+    }
+
+    private fun language(choice: String, chinese: Boolean) {
+        openLanguage(chinese)
         capture("language-options-${if (chinese) "zh" else "en"}")
-        click(label)
+        click(choice)
         device.waitForIdle()
     }
 
@@ -126,6 +142,9 @@ class LocalizationSmokeTest {
         capture("model-config-zh")
         back()
         back()
+        click("选择模型")
+        click("测试模型")
+        capture("active-model-zh")
         back()
 
         desc("项目")
@@ -179,7 +198,8 @@ class LocalizationSmokeTest {
         fields("请概括中文项目资料")
         desc("发送")
         // No credential is configured. A real model response is explicitly out of scope.
-        device.wait(Until.hasObject(By.text("无法完成操作")), 15_000)
+        assertTrue("The offline endpoint must surface an application error",
+            device.wait(Until.hasObject(label("无法完成操作")), 30_000))
         capture("chat-without-live-api-zh")
     }
 
@@ -218,7 +238,7 @@ class LocalizationSmokeTest {
         text("中文协作组")
         capture("follow-system-chinese")
         desc("设置")
-        scrollTo("语言").click()
+        openLanguage(true)
         text("跟随系统")
         capture("follow-system-choice-zh")
         click("取消")
@@ -234,10 +254,10 @@ class LocalizationSmokeTest {
     @Test fun largeFontLanguageDialog() = recorded("large-font") {
         launch()
         settings(false)
-        scrollTo("Language").click()
+        openLanguage(false)
         capture("language-dialog-large-font")
         click("简体中文")
-        scrollTo("语言").click()
+        openLanguage(true)
         capture("language-dialog-chinese-large-font")
     }
 

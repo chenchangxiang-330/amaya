@@ -113,7 +113,7 @@ jobs:
           arch: x86_64
           profile: pixel_2
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -feature -Vulkan -no-snapshot -noaudio -no-boot-anim -camera-back none
           script: bash validation/run-emulator-checks.sh
       - name: Collect available runtime evidence
         if: always()
@@ -121,7 +121,7 @@ jobs:
         run: |
           mkdir -p validation/runtime
           find validation/runtime -type f -name '*-result.txt' -exec cat {} \;
-          sudo dmesg --ctime | grep -Ei 'out of memory|killed process|oom' > validation/runtime/host-memory-events.txt || true
+          sudo dmesg --ctime | grep -Ei 'out of memory|killed process|oom' | tee validation/runtime/host-memory-events.txt || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -163,7 +163,7 @@ jobs:
                   shutil.rmtree(target)
               target.mkdir(parents=True, exist_ok=True)
               for source in artifact.rglob('*'):
-                  if source.is_file() and (source.suffix in ('.png', '.xml') or source.name.endswith('-result.txt')):
+                  if source.is_file() and (source.suffix in ('.png', '.xml') or source.name.endswith('-result.txt') or source.name == 'host-memory-events.txt'):
                       shutil.copy2(source, target / source.name)
           dest.mkdir(parents=True, exist_ok=True)
           (dest / 'source.json').write_text(json.dumps({'source_sha': os.environ['SOURCE_SHA'], 'run': os.environ['RUN_URL'], 'variant': 'debug', 'emulator_abi': 'x86_64', 'phone_abi': 'arm64-v8a', 'live_model_response_tested': False}, indent=2))
