@@ -1,0 +1,8 @@
+{
+  "source_sha": "ba4fbc02b344649569a0faeb12a71e51bb53f46d",
+  "run": "https://github.com/chenchangxiang-330/amaya/actions/runs/42954449863",
+  "variant": "debug",
+  "emulator_abi": "x86_64",
+  "phone_abi": "arm64-v8a",
+  "live_model_response_tested": false
+}
