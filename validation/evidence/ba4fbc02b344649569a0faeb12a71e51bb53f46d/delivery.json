@@ -1,0 +1,39 @@
+{
+  "source_sha": "ba4fbc02b344649569a0faeb12a71e51bb53f46d",
+  "baseline_sha": "fbc1f1e79744bacc60ad5ba5ba51d08570c66521",
+  "source_branch": "codex/simplified-chinese",
+  "validation_workflow_sha": "10dc27c4399bb9a6a4269dad64cba4fbf552dbc6",
+  "run_url": "https://github.com/chenchangxiang-330/amaya/actions/runs/42956973326",
+  "conclusion": "success",
+  "resource_count": 477,
+  "emulators": {
+    "30": {
+      "job_id": 130314264545,
+      "phases_passed": 6
+    },
+    "33": {
+      "job_id": 130314264272,
+      "phases_passed": 6
+    }
+  },
+  "evidence_commit": "3d924ac1d2d6ef18f5261d1c3c9c908f61295bf8",
+  "artifact_id": 13827084400,
+  "apk_sha256": "e824e296949855a10d333dc87b2af95f7d7f68b2e254213728abc7f99632f522",
+  "certificate_sha256": "ced875e71d2618d0e80c507e11c29c7bf6dc9e2918bbcd091b8aeafdc59b9415",
+  "package": "com.amaya.intelligence.debug",
+  "version_name": "1.0.3",
+  "version_code": 4,
+  "min_sdk": 26,
+  "phone_abi": "arm64-v8a",
+  "emulator_abi": "x86_64",
+  "variant": "debug",
+  "live_model_response_tested": false,
+  "api_35_verified": false,
+  "pull_request": {
+    "created": false,
+    "title": "Add Simplified Chinese localization",
+    "base": "nazrielnr/amaya:main",
+    "head": "chenchangxiang-330/amaya:codex/simplified-chinese",
+    "blocker": "GitHub integration returned HTTP 403 Resource not accessible by integration for both draft and ordinary PR creation; cloud Chrome has DNS_PROBE_FINISHED_NO_INTERNET"
+  }
+}

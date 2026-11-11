@@ -1,0 +1,37 @@
+$ uname -srm
+Linux 6.18.57 x86_64
+exit_code=0
+
+$ pwd
+/workspace/amaya
+exit_code=0
+
+$ findmnt -T /workspace -o TARGET,FSTYPE
+TARGET     FSTYPE
+/workspace overlay
+exit_code=0
+
+$ git remote -v
+origin	https://github.com/chenchangxiang-330/amaya.git (fetch)
+origin	https://github.com/chenchangxiang-330/amaya.git (push)
+upstream	https://github.com/nazrielnr/amaya.git (fetch)
+upstream	https://github.com/nazrielnr/amaya.git (push)
+exit_code=0
+
+$ git status --short
+
+exit_code=0
+
+$ git rev-parse HEAD
+ba4fbc02b344649569a0faeb12a71e51bb53f46d
+exit_code=0
+
+$ python3 /workspace/work/amaya-validation-runner/validation/check_resources.py
+PASS: 477 translated string/plural resources, identical argument types and indices; English fallback and nontranslatable names present.
+exit_code=0
+
+$ git -c core.whitespace=cr-at-eol diff --check upstream/main...HEAD
+
+exit_code=0
+
+/dev/kvm exists: False

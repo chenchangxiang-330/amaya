@@ -1,0 +1,30 @@
+Adds Simplified Chinese for the core local Android flows, retaining English defaults, existing layouts and behavior, the Amaya name, attribution, and license. Uses 477 Android string/plural resources with locale-aware access in Compose and non-Composable entry points; no dependency upgrades or custom translation framework.
+
+**Coverage:** home/navigation; chat composer, common actions and confirmations; projects, workspace browser and references; agent groups/configuration; models, providers, API setup and input validation; common settings, theme/language, update UI, terminal policy and accessibility labels. Machine identifiers, API addresses, protocol fields, commands and paths are unchanged.
+
+**Language selection:** Settings → Appearance → Language → Follow system / 简体中文 / English. AppCompat persists selection on Android 12 and earlier and integrates with platform app locales on Android 13+. User-entered Chinese names/content survive switching and restart.
+
+Chinese reference filenames now preserve Unicode letters, combining marks and numbers while excluding separators/control characters; unit tests cover this. Separate commit `358531f` fixes the existing API-26 update compatibility error using the already available `PackageInfoCompat.getLongVersionCode`.
+
+### Validation
+
+- [Unmodified upstream baseline](https://github.com/chenchangxiang-330/amaya/actions/runs/42946659016), `fbc1f1e79744bacc60ad5ba5ba51d08570c66521`: debug build and unit tests passed before edits; lint exposed the existing API-28-only version accessor fixed above.
+- [Final cloud validation](https://github.com/chenchangxiang-330/amaya/actions/runs/42956973326), source `ba4fbc02b344649569a0faeb12a71e51bb53f46d`: `gradle :app:assembleDebug` and `gradle :app:testDebugUnitTest :app:lintDebug --continue` passed. JDK 17, Gradle 8.14.3, compile SDK 36. All 477 resource keys, argument indices/types, plural branches and English fallback checks passed.
+- Real Android 11/API 30 and Android 13/API 33 emulators each passed six UI phases: Chinese core flows; Chinese restart and English switch; English restart and follow-system selection; Chinese system locale; unsupported French locale falling back to English; language dialog at font scale 1.3.
+- Created an offline provider/model, a Chinese project, agent group/agent and multiline reference note; selected the model and checked the unavailable-endpoint error. Verified stored Chinese filenames/content after restart. Inspected buttons, forms, long text, dialogs and UI accessibility labels in [actual screenshots and test results](https://github.com/chenchangxiang-330/amaya/tree/3d924ac1d2d6ef18f5261d1c3c9c908f61295bf8/validation/evidence/ba4fbc02b344649569a0faeb12a71e51bb53f46d).
+
+The [ARM64 debug APK](https://github.com/chenchangxiang-330/amaya/actions/runs/42956973326/artifacts/13827084400) is version 1.0.3/code 4 with an Android debug certificate and application ID `com.amaya.intelligence.debug`. Emulator APKs use the same source/debug variant with a fork-only x86_64 override. Development, builds and runtime tests were entirely in cloud Linux. Fork-only CI, test fixtures, signing material and delivery artifacts are excluded from this PR.
+
+### Actual Android 13 screenshots
+
+| Language, font scale 1.3 | Project references | Agent configuration |
+| --- | --- | --- |
+| ![Chinese language dialog](https://raw.githubusercontent.com/chenchangxiang-330/amaya/3d924ac1d2d6ef18f5261d1c3c9c908f61295bf8/validation/evidence/ba4fbc02b344649569a0faeb12a71e51bb53f46d/api-33/language-dialog-chinese-large-font.png) | ![Saved Chinese reference](https://raw.githubusercontent.com/chenchangxiang-330/amaya/3d924ac1d2d6ef18f5261d1c3c9c908f61295bf8/validation/evidence/ba4fbc02b344649569a0faeb12a71e51bb53f46d/api-33/project-references-saved-zh.png) | ![Agent configuration](https://raw.githubusercontent.com/chenchangxiang-330/amaya/3d924ac1d2d6ef18f5261d1c3c9c908f61295bf8/validation/evidence/ba4fbc02b344649569a0faeb12a71e51bb53f46d/api-33/agent-config-zh.png) |
+
+### Limits
+
+This is a first pass over core flows. Advanced remote/bridge, MCP/scheduling, detailed tool output and browser automation still contain English. Raw technical/runtime/server error details remain unchanged; Android owns system picker/permission text.
+
+No authorized model API credentials were available. Tests used `https://example.invalid/v1` without a key; no real or mocked successful model reply is claimed. Real replies, tool execution and model-driven use of references remain unverified. Physical ARM64 execution, release signing and a full TalkBack/device-layout audit were not performed.
+
+API 35 emulator attempts repeatedly lost their emulator process/ADB connection; the host cause is unresolved. API 35 is not counted as passed. Final API 30 and 33 runs completed successfully.

@@ -1,0 +1,77 @@
+Amaya 简体中文支持：云端验证报告
+
+源码：ba4fbc02b344649569a0faeb12a71e51bb53f46d
+上游基线：fbc1f1e79744bacc60ad5ba5ba51d08570c66521
+Fork：https://github.com/chenchangxiang-330/amaya
+开发分支：https://github.com/chenchangxiang-330/amaya/tree/codex/simplified-chinese
+上游 PR：尚未创建。GitHub 创建 Draft 与普通 PR 均返回 HTTP 403 Resource not accessible by integration；并非等待维护者批准。标题和英文正文已保存为同目录 pull-request-body.txt。
+
+1. 环境与权限
+
+实际终端为云端 Debian 13 Linux x86_64，工作目录 /workspace/amaya，文件系统为 Kata 容器的 overlay。已实际检查环境状态、uname、工作目录和挂载信息。开发、依赖、构建、APK 和截图均在云端或 Fork 的 GitHub Actions 中完成，没有向 Mac 安装 SDK、克隆仓库或下载 APK。
+已连接并实际使用的 GitHub 账号为 chenchangxiang-330。Fork 的代码推送、Actions 运行和任务重跑均实际成功。
+当前云端容器没有 /dev/kvm，因此运行验证使用 Fork Actions 的 Linux runner 和 Android Emulator。
+
+2. 基线与工具版本
+
+上游 main 保持 fbc1f1e79744bacc60ad5ba5ba51d08570c66521。PR #9“Modifikasi besar”仍 open、未合并；包含 71 个提交、196 个变更文件，本次没有引入。
+采用仓库配置：Gradle 8.14.3、AGP 8.9.1、Kotlin 2.0.21、JDK 17、compileSdk 36、targetSdk 34、minSdk 26。没有升级应用依赖。
+未经修改的上游基线：https://github.com/chenchangxiang-330/amaya/actions/runs/42946659016
+  gradle :app:assembleDebug --stacktrace --console=plain
+  gradle :app:testDebugUnitTest :app:lintDebug --continue --stacktrace --console=plain
+基线 APK 构建和单元测试通过。lint 因既有 AppUpdateInstaller.longVersionCode 需要 API 28、而 minSdk 为 26 失败，并有既有警告。独立提交 358531f 使用已有 PackageInfoCompat.getLongVersionCode 修复这个兼容性错误。
+最初的 Actions SDK 安装配置曾请求已废弃的 tools 包；仅修正 Fork 验证工作流后，以上基线构建得以完成。
+
+3. 中文化范围
+
+477 项可翻译字符串/复数资源：英文默认值和 values-zh-rCN；使用 stringResource、pluralStringResource 及非 Composable 的 locale-aware 资源访问。
+已覆盖：首页、导航、聊天输入和主要操作、常用确认和无障碍描述；项目创建/配置/资料；智能体群组与配置；模型、模型服务商、API 配置及输入校验；常用设置、语言/主题、更新界面、终端策略、个人资料与技能控制；应用自有工作区文件浏览器。
+语言路径：设置 → 外观 → 语言 → 跟随系统／简体中文／English。使用 AppCompat 标准应用语言机制，API 33+ 对接系统应用语言；较旧系统自动保存选择。
+中文资料文件名保留 Unicode 字母、组合字符和数字，同时继续排除路径分隔符及控制字符。
+应用名称、原作者署名、许可证、模型 ID、API 地址、JSON 字段、命令、路径和机器协议保持原样。
+
+4. 构建与静态检查
+
+最终 Actions：https://github.com/chenchangxiang-330/amaya/actions/runs/42956973326
+ARM64 debug 构建、单元测试、lint 全部通过。构建/check job：https://github.com/chenchangxiang-330/amaya/actions/runs/42956973326/job/130314264622。工作流分支 HEAD 为 10dc27c4399bb9a6a4269dad64cba4fbf552dbc6，但实际 checkout/build 的应用源码是上方 ba4fbc02...；两者不能混为一谈。
+资源键、占位符序号/类型、复数数量分支、英文回退配置检查通过；变更 Kotlin 语法检查和 git diff --check 通过。
+应用分支不包含 Fork 专用工作流、UI 测试夹具、构建产物、缓存、调试密钥或交付辅助文件。
+云端终端执行的静态命令：
+  python3 /workspace/work/amaya-validation-runner/validation/check_resources.py
+  git -c core.whitespace=cr-at-eol diff --check upstream/main...HEAD
+结果：477 项资源检查 PASS；diff 检查无输出、退出码 0。
+正式 Android 构建、单元测试及 lint 均在 Actions 执行，其完整日志与报告保存在对应运行及 localization-checks Artifact。
+
+5. 实际运行验证
+
+Android 11/API 30 与 Android 13/API 33 各通过六阶段真实 UI 测试：中文核心流程；中文重启后切换 English；英文重启后选择跟随系统；系统切换简体中文并重启；系统切换法语并验证英文回退；1.3 倍字体语言弹窗。
+核心流程实际完成：保存无密钥的离线模型服务商与自定义模型，选择该模型，创建中文项目/群组/智能体，创建并保存多行中文资料，新建项目聊天并验证不可达服务的错误界面。重启后验证中文名称、资料文件名及内容保留。
+Android 11 job：https://github.com/chenchangxiang-330/amaya/actions/runs/42956973326/job/130314264545
+Android 13 job：https://github.com/chenchangxiang-330/amaya/actions/runs/42956973326/job/130314264272
+这证明了本地配置和错误流程，不代表模型已成功读取资料或作答。
+测试使用真实 Android UI 和真实截图；模拟器 APK 与 ARM64 APK 对应同一源码提交和 debug 变体，仅模拟器 ABI 改为 x86_64，并额外安装独立 instrumentation 测试 APK。
+已查看中文首页、设置、模型表单、错误说明、资料长文本、智能体配置、删除确认和 1.3 倍字体语言对话框。记录包含 PNG、无障碍 UI 层级 XML、每阶段结果和运行日志。所检查的 Pixel 2 竖屏按钮、确认框和输入框没有观察到中文截断；1.3 倍字体只检查语言弹窗。设置页沿用原有悬浮导航布局，滚动到特定位置时会覆盖下方列表行，测试会将目标行滚入可见区域。
+测试输入为合成的中文项目/群组/智能体/资料名称；未使用用户的真实模型凭据。没有模拟服务或伪造模型成功响应。
+截图与记录：https://github.com/chenchangxiang-330/amaya/tree/3d924ac1d2d6ef18f5261d1c3c9c908f61295bf8/validation/evidence/ba4fbc02b344649569a0faeb12a71e51bb53f46d
+
+6. APK
+
+Artifact：https://github.com/chenchangxiang-330/amaya/actions/runs/42956973326/artifacts/13827084400
+版本 1.0.3，versionCode 4，ARM64（arm64-v8a），Android 8.0/API 26 起。
+包名 com.amaya.intelligence.debug，可与正式包并存；使用 Android Debug 测试证书，不是原作者官方发行签名。其他测试构建若使用不同证书，不能直接覆盖安装。
+APK SHA-256：e824e296949855a10d333dc87b2af95f7d7f68b2e254213728abc7f99632f522
+测试签名证书 SHA-256：ced875e71d2618d0e80c507e11c29c7bf6dc9e2918bbcd091b8aeafdc59b9415
+Actions Artifact 保存 30 天，预计到期 2026-12-11；需要登录 GitHub 下载。没有自动下载到 Mac。
+
+7. 未验证与已知限制
+
+没有真实模型 API 凭据，因此真实模型响应、工具执行及模型实际读取项目资料完成回答的流程未验证。
+高级远程/Windows Bridge、MCP/定时任务完整页面、详细工具结果和浏览器自动化界面仍有英文；部分原始运行时/技术/服务端错误详情仍为英文。系统文件选择器和系统权限页面的文案由 Android 提供。
+没有做实体 ARM64 手机运行、正式 release 签名、全套 TalkBack 或全部字号/方向/主题的验收。模拟器截图与构建成功分别证明对应检查，不代表完整功能验收。
+Android 15/API 35 的多次尝试中，模拟器进程消失，ADB offline/connection refused；关闭 Vulkan 后仍出现。宿主原因未确定，不计为运行通过。代表性日志：https://github.com/chenchangxiang-330/amaya/actions/runs/42956176459/job/130311712560。最终通过的运行采用 API 30 和 API 33。
+
+8. 后续维护
+
+在云端 git fetch upstream main 后，将本次分支同步到最新上游并解决资源冲突。新增或修改界面文案时，同时维护 values/strings.xml 和 values-zh-rCN/strings.xml，保留参数序号、类型和机器标识。
+重新运行资源检查与 gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug。Fork 的 codex/localization-validation 分支中，先将 SOURCE_SHA 更新为待验证提交，再推送运行；工作流与夹具继续留在 Fork 专用分支。
+PR 提交仍被 GitHub 集成权限阻塞。云端共享 Chrome 还显示 DNS_PROBE_FINISHED_NO_INTERNET，无法通过网页代为提交。最小后续操作是使用 chenchangxiang-330 登录 GitHub，打开同目录 pr-create-url.txt 中已填好标题和正文的链接，点击 Create pull request；无需令牌。提交目标为 nazrielnr/amaya 的 main。没有合并 PR、修改上游 main 或发布额外 Issue。
