@@ -7,6 +7,7 @@ permissions:
   contents: read
 env:
   SOURCE_SHA: 09ec145e44c80ad6f97d4cfd6c37a40c99853d11
+  AMAYA_VALIDATION_PACKAGE: com.amaya.intelligence.debug.fix
 jobs:
   localization:
     if: github.repository == 'chenchangxiang-330/amaya'
@@ -47,13 +48,13 @@ jobs:
       - name: Build debug ARM APKs
         run: |
           set -o pipefail
-          gradle :app:assembleDebug --stacktrace --console=plain 2>&1 | tee validation/build.log
+          gradle -I harness/validation/test-package.init.gradle :app:assembleDebug --stacktrace --console=plain 2>&1 | tee validation/build.log
           sha256sum app/build/outputs/apk/debug/*arm64-v8a*.apk | tee validation/apk-sha256.txt
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-arm64-v8a-debug.apk | tee validation/signature.txt
       - name: Unit tests and lint
         run: |
           set -o pipefail
-          gradle :app:testDebugUnitTest :app:lintDebug --continue --stacktrace --console=plain 2>&1 | tee validation/checks.log
+          gradle -I harness/validation/test-package.init.gradle :app:testDebugUnitTest :app:lintDebug --continue --stacktrace --console=plain 2>&1 | tee validation/checks.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -67,7 +68,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: amaya-1.0.3-debug-arm64-v8a
+          name: amaya-1.0.3-fix-side-by-side-arm64-v8a
           retention-days: 30
           path: app/build/outputs/apk/debug/app-arm64-v8a-debug.apk
   emulator:
@@ -108,7 +109,7 @@ jobs:
       - name: Build x86_64 debug and instrumentation APKs
         run: |
           set -o pipefail
-          gradle -I harness/validation/emulator.init.gradle :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon -Pkotlin.compiler.execution.strategy=in-process --no-configuration-cache --stacktrace --console=plain 2>&1 | tee validation/emulator-build.log
+          gradle -I harness/validation/test-package.init.gradle -I harness/validation/emulator.init.gradle -I harness/validation/test-package.init.gradle :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon -Pkotlin.compiler.execution.strategy=in-process --no-configuration-cache --stacktrace --console=plain 2>&1 | tee validation/emulator-build.log
           free -m | tee validation/memory-before-emulator.txt
       - name: Exercise real Android UI
         uses: reactivecircus/android-emulator-runner@v2
@@ -171,7 +172,7 @@ jobs:
                   if source.is_file() and (source.suffix in ('.png', '.xml') or source.name.endswith('-result.txt') or source.name == 'host-memory-events.txt'):
                       shutil.copy2(source, target / source.name)
           dest.mkdir(parents=True, exist_ok=True)
-          (dest / 'source.json').write_text(json.dumps({'source_sha': os.environ['SOURCE_SHA'], 'run': os.environ['RUN_URL'], 'variant': 'debug', 'emulator_abi': 'x86_64', 'phone_abi': 'arm64-v8a', 'live_model_response_tested': False}, indent=2))
+          (dest / 'source.json').write_text(json.dumps({'source_sha': os.environ['SOURCE_SHA'], 'run': os.environ['RUN_URL'], 'variant': 'debug', 'emulator_abi': 'x86_64', 'phone_abi': 'arm64-v8a', 'application_id': os.environ['AMAYA_VALIDATION_PACKAGE'], 'live_model_response_tested': False}, indent=2))
           PY
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
+amaya_test_package="${AMAYA_VALIDATION_PACKAGE:-com.amaya.intelligence.debug}"
 mkdir -p validation/runtime
 collect_evidence() {
   mkdir -p validation/runtime/locale-validation
-  timeout 15s adb exec-out run-as com.amaya.intelligence.debug tar -C files/locale-validation -cf - . |
+  timeout 15s adb exec-out run-as ${amaya_test_package} tar -C files/locale-validation -cf - . |
     tar -xf - -C validation/runtime/locale-validation
 }
 collector_pid=''
@@ -17,18 +18,18 @@ trap finish EXIT
 adb install -r app/build/outputs/apk/debug/app-x86_64-debug.apk
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 if [ "$(adb shell getprop ro.build.version.sdk | tr -d '\r')" -ge 33 ]; then
-  adb shell pm grant com.amaya.intelligence.debug android.permission.POST_NOTIFICATIONS
+  adb shell pm grant ${amaya_test_package} android.permission.POST_NOTIFICATIONS
 fi
-adb shell appops set com.amaya.intelligence.debug MANAGE_EXTERNAL_STORAGE allow
+adb shell appops set ${amaya_test_package} MANAGE_EXTERNAL_STORAGE allow
 adb shell mkdir -p /sdcard/Download/Amaya-l10n
 adb logcat -v threadtime > validation/runtime/logcat.txt &
 logcat_pid=$!
 (while :; do collect_evidence 2>/dev/null || true; sleep 8; done) &
 collector_pid=$!
 run_test() {
-  adb shell am force-stop com.amaya.intelligence.debug
+  adb shell am force-stop ${amaya_test_package}
   timeout 300s adb shell am instrument -w -e class "com.amaya.intelligence.localization.LocalizationSmokeTest#$1" \
-    com.amaya.intelligence.debug.test/androidx.test.runner.AndroidJUnitRunner | tee "validation/runtime/$1.log"
+    ${amaya_test_package}.test/androidx.test.runner.AndroidJUnitRunner | tee "validation/runtime/$1.log"
   if ! grep -q 'OK (1 test)' "validation/runtime/$1.log"; then
     exit 1
   fi

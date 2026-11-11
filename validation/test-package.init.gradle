@@ -1,0 +1,10 @@
+// Fork-only install identity: preserve the already installed test app and its user data.
+gradle.beforeProject { project ->
+    project.plugins.withId('com.android.application') {
+        project.androidComponents.finalizeDsl { android ->
+            android.buildTypes.getByName('debug').applicationIdSuffix = '.debug.fix'
+            android.buildTypes.getByName('debug').versionNameSuffix = '-fix'
+            android.sourceSets.getByName('debug').manifest.srcFile(project.rootProject.file('harness/validation/test-manifest.xml'))
+        }
+    }
+}

@@ -66,7 +66,12 @@ class LocalizationSmokeTest {
     }
 
     private fun fields(vararg values: String) {
-        val edits = device.wait(Until.findObjects(By.clazz("android.widget.EditText")), 10_000).orEmpty()
+        val deadline = SystemClock.uptimeMillis() + 10_000
+        var edits = device.findObjects(By.clazz("android.widget.EditText"))
+        while (edits.size < values.size && SystemClock.uptimeMillis() < deadline) {
+            SystemClock.sleep(100)
+            edits = device.findObjects(By.clazz("android.widget.EditText"))
+        }
         assertTrue("Expected ${values.size} edit fields, found ${edits.size}", edits.size >= values.size)
         values.forEachIndexed { index, value -> edits[index].text = value }
         device.waitForIdle()
@@ -225,7 +230,7 @@ class LocalizationSmokeTest {
             if (image) {
                 val bitmap = android.graphics.Bitmap.createBitmap(2400, 1200, android.graphics.Bitmap.Config.ARGB_8888)
                 bitmap.eraseColor(android.graphics.Color.BLUE)
-                bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output)
+                bitmap.compress(if (mime == "image/jpeg") android.graphics.Bitmap.CompressFormat.JPEG else android.graphics.Bitmap.CompressFormat.PNG, 100, output)
                 bitmap.recycle()
             } else output.write("中文文件内容，用于验证附件显示与重选。".toByteArray())
         }
@@ -244,23 +249,25 @@ class LocalizationSmokeTest {
             val roots = device.findObject(By.desc("Show roots")) ?: device.findObject(By.desc("显示根目录"))
             roots?.click()
             device.waitForIdle()
-            val location = if (name.endsWith(".png")) "Images" else "Downloads"
+            val location = if (name.endsWith(".png") || name.endsWith(".jpg")) "Images" else "Downloads"
             device.findObject(By.text(location))?.click()
             device.waitForIdle()
             device.findObject(By.text("AmayaValidation"))?.click()
         }
         find(By.text(name)).click()
+        assertTrue("Picker must return to the chat", device.wait(Until.hasObject(By.desc("添加附件")), 10_000))
         device.waitForIdle()
     }
 
     private fun openProjectConversation(title: String) {
         desc("菜单")
         click("中文项目")
-        click(title)
+        find(label(title).longClickable(true)).click()
+        device.waitForIdle()
     }
 
     private fun projectRecord(): Triple<Long, String, String> {
-        val file = context.databaseList().map(context::getDatabasePath).first { it.name.endsWith(".db") || it.name.contains("amaya") }
+        val file = context.getDatabasePath("Amaya_db")
         return android.database.sqlite.SQLiteDatabase.openDatabase(file.path, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY).use { db ->
             db.rawQuery("SELECT id, title, messages_json FROM conversations WHERE assistant_mode = 'PROJECT' ORDER BY updated_at DESC LIMIT 1", null).use { cursor ->
                 assertTrue(cursor.moveToFirst())
@@ -273,12 +280,17 @@ class LocalizationSmokeTest {
         launch()
         openProjectConversation("请概括中文项目资料")
         seedPickerFile("中文照片.png", "image/png", true)
+        seedPickerFile("相册照片.jpg", "image/jpeg", true)
         seedPickerFile("中文附件.txt", "text/plain", false)
         pickFile("中文照片.png")
         text("中文照片.jpg")
         capture("photo-picked-through-add-file")
         desc("移除")
         assertFalse(device.hasObject(label("中文照片.jpg")))
+        pickFile("相册照片.jpg")
+        text("相册照片.jpg")
+        capture("jpeg-photo-attachment-visible")
+        desc("移除")
         pickFile("中文附件.txt")
         text("中文附件.txt")
         capture("text-file-attachment-visible")
@@ -307,18 +319,19 @@ class LocalizationSmokeTest {
         val before = projectRecord()
         desc("菜单")
         click("中文项目")
-        text(before.second).longClick()
+        find(label(before.second).longClickable(true)).longClick()
         click("重命名对话")
         fields("")
         assertFalse("Blank names cannot be saved", text("保存").isEnabled)
         fields("取消的名称")
         click("取消")
         assertEquals(before.second, projectRecord().second)
-        text(before.second).longClick()
+        find(label(before.second).longClickable(true)).longClick()
         click("重命名对话")
         fields("项目照片讨论（已重命名）")
         capture("rename-project-conversation-dialog")
         click("保存")
+        assertTrue(device.wait(Until.gone(By.text("重命名对话")), 10_000))
         text("项目照片讨论（已重命名）")
         val after = projectRecord()
         assertEquals(before.first, after.first)
@@ -326,7 +339,7 @@ class LocalizationSmokeTest {
         File(output, "renamed-conversation.json").writeText(org.json.JSONObject()
             .put("id", before.first).put("messages", before.third).toString())
         capture("project-conversation-renamed")
-        text(after.second).longClick()
+        find(label(after.second).longClickable(true)).longClick()
         click("删除")
         text("删除对话？")
         click("取消")
