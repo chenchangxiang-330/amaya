@@ -1,0 +1,28 @@
+{
+  "source_branch": "codex/photo-attachments-and-project-renaming",
+  "source_sha": "09ec145e44c80ad6f97d4cfd6c37a40c99853d11",
+  "base_sha": "ba4fbc02b344649569a0faeb12a71e51bb53f46d",
+  "workflow_branch": "codex/localization-validation",
+  "run": 42991319960,
+  "status": "Final phone ARM64 build/unit/lint/resources and test signing cache succeeded; runtime UI checks pending after fixture corrections",
+  "root_causes": [
+    "Child composer remembered initial file path without receiving subsequent picker results",
+    "Generic file selection treated photos as text-file paths",
+    "Project conversation rows lacked long-click actions and service had no rename operation"
+  ],
+  "user_confirmed": "Photos can be selected, but no attachment/preview appears after returning",
+  "pending_fixture_changes": null,
+  "previous_installed_apk_certificate_sha256": "ced875e71d2618d0e80c507e11c29c7bf6dc9e2918bbcd091b8aeafdc59b9415",
+  "pr10_unmodified": true,
+  "pr10_body_still_truncated": true,
+  "initial_build_result": "ARM64 build, unit tests and lint passed in 42988198787; API30 screenshots confirm photo/file chips and image message display. UI suite failed due test database filename mismatch; API33 earlier form readiness race. Both fixtures fixed.",
+  "workflow_sha": "ea5b7e9c8804a4d1274027da3bf1aab2676cf472",
+  "parallel_install_package": "com.amaya.intelligence.debug.fix",
+  "parallel_install_label": "Amaya 修复测试",
+  "phone_test_certificate_sha256": "73ebbf39268d08f7a67ca0be0f221be4557f7e514204edb05e321e2598a4d17f",
+  "signature_note": "Explicit test-only keystore saved successfully to Actions cache amaya-debug-signing-v2. Restore in a future phone build has not been exercised; cache eviction can require a new signer. Independent package preserves old application/data.",
+  "runtime_run": 42993001967,
+  "phone_run": 42991785058,
+  "phone_apk_sha256": "8feee891980694dd629e580c202cbeffb3579c1d159675bcb2d22e29a39688ec",
+  "phone_apk_artifact": 13842013460
+}
