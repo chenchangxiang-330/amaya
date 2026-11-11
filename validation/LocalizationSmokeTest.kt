@@ -13,6 +13,7 @@ import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
+import java.util.regex.Pattern
 
 /** Fork-only UI checks. No live model or mock server is used. */
 @RunWith(AndroidJUnit4::class)
@@ -33,7 +34,9 @@ class LocalizationSmokeTest {
         device.wait(Until.findObject(selector), 10_000)
             ?: throw AssertionError("Missing $selector. See failure screenshot.")
 
-    private fun text(value: String) = find(By.text(value))
+    // Compose merges clickable row titles and supporting text into one accessibility node.
+    private fun label(value: String) = By.text(Pattern.compile("^" + Pattern.quote(value) + "(?:\\n.*)?$", Pattern.DOTALL))
+    private fun text(value: String) = find(label(value))
     private fun click(value: String) { text(value).click(); device.waitForIdle() }
     private fun desc(value: String) { find(By.desc(value)).click(); device.waitForIdle() }
     private fun back() { device.pressBack(); device.waitForIdle() }
@@ -46,7 +49,7 @@ class LocalizationSmokeTest {
 
     private fun scrollTo(value: String): UiObject2 {
         repeat(9) {
-            device.findObject(By.text(value))?.let { return it }
+            device.findObject(label(value))?.let { return it }
             device.swipe(device.displayWidth / 2, device.displayHeight * 3 / 4,
                 device.displayWidth / 2, device.displayHeight / 3, 30)
             device.waitForIdle()
@@ -101,7 +104,7 @@ class LocalizationSmokeTest {
         click("添加模型服务商")
         scrollTo("OpenAI-compatible").click()
         fields("中文测试服务", "not-a-url", "")
-        scrollTo("跳过模型列表并保存").click()
+        scrollTo("连接").click()
         text("无法完成操作")
         capture("provider-invalid-url-zh")
         fields("中文测试服务", "https://example.invalid/v1", "")
