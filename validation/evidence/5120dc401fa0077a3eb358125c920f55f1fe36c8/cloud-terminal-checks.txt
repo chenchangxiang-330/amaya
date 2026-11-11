@@ -1,0 +1,24 @@
+Cloud terminal checks for image capability fix
+Repository: /workspace/amaya; Linux cloud workspace, no Mac operations.
+
+$ pwd
+/workspace/amaya
+Exit: 0
+
+$ uname -srm
+Linux 6.18.57 x86_64
+Exit: 0
+
+$ git rev-parse HEAD
+5120dc401fa0077a3eb358125c920f55f1fe36c8
+Exit: 0
+
+$ git status --short
+Exit: 0
+
+$ git -c core.whitespace=cr-at-eol diff --check 622d601..HEAD
+Exit: 0
+
+$ python3 /workspace/work/amaya-validation-runner/validation/check_resources.py
+PASS: 483 translated string/plural resources, identical argument types and indices; English fallback and nontranslatable names present.
+Exit: 0

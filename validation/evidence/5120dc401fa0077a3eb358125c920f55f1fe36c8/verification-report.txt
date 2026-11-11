@@ -1,0 +1,85 @@
+Amaya 图片能力误判修复：验证与交付记录
+记录时间：2026-11-11 20:59:02 Asia/Shanghai
+
+结果
+应用修复已提交并推送到 Fork；上游 PR #10 已自动包含该提交，普通 Open 状态，未合并，标题仍为 Add Simplified Chinese localization。
+源码提交：5120dc401fa0077a3eb358125c920f55f1fe36c8。
+Fork/PR 分支：https://github.com/chenchangxiang-330/amaya/tree/codex/simplified-chinese
+开发检查点：https://github.com/chenchangxiang-330/amaya/tree/codex/photo-attachments-and-project-renaming
+PR：https://github.com/nazrielnr/amaya/pull/10
+PR 当前 9 个提交、68 个文件；GitHub REST 确认 mergeable=true、mergeable_state=clean。最新上游 main 仍为 fbc1f1e79744bacc60ad5ba5ba51d08570c66521。
+
+原因与修改
+DeepSeek 官方资料声明 V4.1 Flash 支持图片，官方模型 ID 为 deepseek-flash：
+https://api-docs.deepseek.com/guides/vision/
+https://api-docs.deepseek.com/api/list-models/
+用户使用未指明名称的第三方平台/中转接口；其实际图片输入能力不能仅凭上游模型名称判定，本次未调用该真实平台。
+原模型列表解析忽略 input_modalities，并把缺少 capabilities 标签当成不支持图片；保存的 false 又覆盖了刷新结果。界面提示因此可在发出任何请求之前误拦截图片。
+现在读取 input_modalities：明确只有文本时仍拦截；未提供/空的能力信息允许尝试请求服务端。刷新同 ID 模型时更新图片能力，保留保存的名称、上下文/输入/输出限制、启用状态、自定义模型和其他配置。
+本次没有改模型 ID、API 地址、凭据格式、请求协议、数据库结构或依赖版本。应用代码改动仅涉及模型列表解析及列表合并；单元测试覆盖官方格式、缺失信息、旧标记纠正、明确文本模型和用户配置保留。
+
+安装与使用
+ARM64 APK：https://github.com/chenchangxiang-330/amaya/actions/runs/43015972729/artifacts/13853231905
+在手机上登录 GitHub 下载 Artifact ZIP，解压安装其中的 app-arm64-v8a-debug.apk。没有自动下载到用户 Mac。
+版本 1.0.3-fix / versionCode 4；Android 8.0/API 26 及以上；ARM64；应用名 Amaya 修复测试；包名 com.amaya.intelligence.debug.fix。
+这是 Fork 调试签名测试包，不是原作者官方发行包。与上一版 622d601 修复测试包使用相同证书，可以覆盖更新并保留该测试应用的数据。与最初 com.amaya.intelligence.debug 汉化包是不同安装，数据不会自动迁移。
+APK SHA-256：402b019e848ab36d48dc361d0f770a613382627b1739e06554a8dc414b7f9510
+证书 SHA-256：73ebbf39268d08f7a67ca0be0f221be4557f7e514204edb05e321e2598a4d17f
+Actions 已确认缓存 amaya-debug-signing-v2 命中；没有提交或上传 keystore。
+安装后：设置 → 底部全局（地球图标）→ 管理模型 → 模型服务商列表中的对应服务商 → 右上角刷新模型。进入详情页也会自动刷新。保留平台提供的模型 ID；无需删除服务商、清除数据或重新填写密钥。
+
+构建、静态检查和单元测试
+构建任务全部通过：https://github.com/chenchangxiang-330/amaya/actions/runs/43015972729/job/130507010811
+该运行的整体失败来自后续测试脚本导航；不能把整轮称为通过。手机构建、单元测试、lint 和资源检查在该任务中均成功。
+JDK 17、Gradle 8.14.3、compile SDK 36、debug 变体，沿用项目配置。
+命令：
+gradle -I harness/validation/test-package.init.gradle :app:assembleDebug --stacktrace --console=plain
+gradle -I harness/validation/test-package.init.gradle :app:testDebugUnitTest :app:lintDebug --continue --stacktrace --console=plain
+python3 harness/validation/check_resources.py
+483 项中英文字符串/复数资源、占位符类型与索引、复数分支及英文回退检查通过。
+构建、JUnit、lint 报告：https://github.com/chenchangxiang-330/amaya/actions/runs/43015972729/artifacts/13853570504
+云端终端还执行了 pwd、uname -srm、git diff --check 和资源检查；命令/输出见本目录 cloud-terminal-checks.txt。构建摘要、APK 和证书校验见 phone-build-summary.txt。
+未经修改的上游基线：fbc1f1e79744bacc60ad5ba5ba51d08570c66521，https://github.com/chenchangxiang-330/amaya/actions/runs/42946659016 。构建和单元测试通过；既有 API 版本读取 lint 问题此前已在独立提交 358531f 中修复。
+上游针对最新 PR head 的 pull_request Actions 运行数为 0。本次通过记录来自 Fork，没有把未启动的上游检查说成通过或等待批准。
+
+实际运行验证：与手机 APK 相同源码，x86_64 debug 模拟器
+完整语言/既有流程记录：https://github.com/chenchangxiang-330/amaya/actions/runs/43020681633
+API 30 与 API 33 各通过九项既有流程：核心中文界面、照片/文本附件选择移除重选及图片持久化、项目对话重命名/空名称/取消、重启后 ID 与消息保持、中英文/跟随系统切换、系统中文、法语系统英文回退、1.3 倍字体语言对话框。
+同一完整运行的新增检查已确认旧图片标记被刷新修正、用户模型参数保留，但测试脚本随后把已展开的项目列表折叠，未完成最后发送步骤；故该完整运行整体为失败。
+该运行 85 张真实截图及逐项结果固定保存在：
+https://github.com/chenchangxiang-330/amaya/tree/45e5b4f668b4fa79a82da23f9df6173f02a10f3f/validation/evidence/5120dc401fa0077a3eb358125c920f55f1fe36c8
+
+最终定向运行全部通过：https://github.com/chenchangxiang-330/amaya/actions/runs/43022600144
+Fork 验证脚本提交：ec4ec25f6f7ab4ad20aaf562d32e7cbe1fa772f4。
+API 30、API 33 各通过五项：核心准备、照片/文件选择、项目对话重命名、重启保留、新增图片能力刷新与发送。没有重复运行已通过的同源码语言回退阶段，也没有重建未变化的 ARM64 包；此轮手机构建任务为 skipped。
+新增检查通过实际 UI 选图和发送：旧 false 标记先触发本地拒绝，草稿与照片保留且无请求；打开服务商详情刷新后标记变为 true，保存的名称和参数保持；返回原聊天后草稿/照片仍在；发送后本地 HTTP 接口收到模型 ID deepseek-flash 和 image/jpeg 数据，5117 字节 JPEG 可解码，原“不支持图片”提示消失。
+该接口是模拟器内 127.0.0.1 的测试夹具，只有模型列表与请求记录功能。聊天端点故意返回 HTTP 400，没有模拟任何成功的 AI 回答。截图中的通用无最终响应错误不是识图成功；应用目前将该失败显示为英文底层信息 Provider completed without a final response。
+最终定向截图共 64 张，均为真实模拟器截图：
+https://github.com/chenchangxiang-330/amaya/tree/75b56cb7c4205c8b1e438ab1de2ee4f6a208d463/validation/evidence/5120dc401fa0077a3eb358125c920f55f1fe36c8
+API 30 截图/日志：https://github.com/chenchangxiang-330/amaya/actions/runs/43022600144/artifacts/13856880683
+API 33 截图/日志：https://github.com/chenchangxiang-330/amaya/actions/runs/43022600144/artifacts/13856516661
+发送证据：https://github.com/chenchangxiang-330/amaya/blob/75b56cb7c4205c8b1e438ab1de2ee4f6a208d463/validation/evidence/5120dc401fa0077a3eb358125c920f55f1fe36c8/api-33/image-request-reaches-local-fixture-error.png
+断言摘要见 api-30/image-request-fixture-result.txt 与 api-33/image-request-fixture-result.txt。
+模拟器命令：gradle -I harness/validation/test-package.init.gradle -I harness/validation/emulator.init.gradle :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon -Pkotlin.compiler.execution.strategy=in-process --no-configuration-cache --stacktrace --console=plain；随后 bash validation/run-emulator-checks.sh。
+两种 ABI 使用同一应用源码/变体及 Fork 测试包名覆盖；模拟器 APK 与手机 APK 的 ABI 和测试签名身份不同。界面夹具只编入 instrumentation 测试 APK，不在手机 APK 或上游 PR 中。
+
+中间失败记录
+43015972729：新增脚本从项目聊天打开了项目设置页，漏选全局；原九项流程在两种 API 均通过。
+43018031130：API 30 在核心流程通过后设备 offline、模拟器端口退出，底层退出原因未确定，未发现宿主 OOM 日志；API 33 原九项通过，新增脚本误点当前模型卡片上的同名服务商文字。
+43020681633：两种 API 原九项通过，新增检查已验证刷新成功，后续重开项目列表的脚本折叠了已有展开项。
+上述导航问题仅修改 Fork 测试脚本，最终通过运行改为返回原聊天；断线等待已加时间上限。应用源码始终为 5120dc4，不以修改产品行为来绕过测试。
+
+覆盖范围、未验证和已知限制
+保留现有 483 项核心中文资源：主页/导航、聊天常用操作、项目/工作区/资料、智能体配置、模型服务商/API、常用设置和应用控制的文件/确认/错误界面。英文默认值、Amaya 名称、署名及许可证保留。
+语言：设置 → 全局 → 外观/语言 → 跟随系统 / 简体中文 / English。系统文件选择器文本属于 Android；底层模型/网络错误、远程和桥接等未覆盖页面仍可能英文，本任务不称为全应用完整汉化。
+已实际查看截图：中文提示、草稿、附件名称和按钮可见；模型服务商配置、重命名弹窗正常。长聊天标题沿用原有淡出截断；完整标题可在侧栏/重命名框查看。
+未使用真实 API 凭据，未验证用户第三方平台接收图片、真实模型识图回答及依赖它的完整流程。未验证实体 ARM64 手机安装、所有图片格式/方向或完整无障碍覆盖。
+整个开发执行位置经 pwd/uname 和仓库状态核实为 /workspace/amaya 的云端 Linux；SDK、缓存、构建、模拟器和 APK 在云端及 Fork Actions，未在用户 Mac 克隆、安装或构建。
+
+PR 正文权限阻塞
+代码已经追加到 PR #10；再次尝试更新上游 PR 正文，GitHub 连接器返回 403 Resource not accessible by integration。当前正文仍引用上一个 622d601 修复版本的验证。
+已准备本目录 pull-request-body-updated.txt 的完整英文替换正文。最小操作：打开文件 → Raw → 复制全文 → PR 首条说明右上角菜单 → Edit → 替换并保存。无需重新创建 PR，无需提供令牌或 API Key。
+
+后续维护
+在云端 git fetch upstream，合并 upstream/main 到 codex/simplified-chinese，保持 values 与 values-zh-rCN 资源键、参数和复数对应。应用源码有变更时更新 Fork 验证工作流 SOURCE_SHA，并执行完整构建/单测/lint/资源及运行检查；测试脚本专用模式只可引用同一源码已有的相应验证，不能沿用其他提交的结果冒充本次通过。
+签名缓存保留并核对证书指纹；工作流、测试包名/签名、UI 夹具和交付证据保留在 Fork 专用分支。Artifacts 保留至 2026-12-11（约 30 天），到期后可用固定源码重新构建。
