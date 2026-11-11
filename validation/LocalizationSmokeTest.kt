@@ -1,6 +1,7 @@
 package com.amaya.intelligence.localization
 
 import android.content.Intent
+import android.os.Bundle
 import android.os.SystemClock
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -42,9 +43,12 @@ class LocalizationSmokeTest {
     private fun back() { device.pressBack(); device.waitForIdle() }
 
     private fun capture(name: String) {
+        // Allow Compose navigation/sheet transitions to finish before the visual record.
+        SystemClock.sleep(750)
         device.waitForIdle()
         assertTrue(device.takeScreenshot(File(output, "$name.png")))
         device.dumpWindowHierarchy(File(output, "$name.xml"))
+        instrumentation.sendStatus(0, Bundle().apply { putString("stream", "SCREENSHOT: $name\n") })
     }
 
     private fun scrollTo(value: String): UiObject2 {
@@ -128,7 +132,7 @@ class LocalizationSmokeTest {
         capture("project-details-zh")
         click("资料")
         capture("project-references-empty-zh")
-        click("笔记")
+        desc("添加笔记")
         fields("中文资料", "这是一份用于本地化验证的中文项目资料。\n第二行包含标点、数字 123 和 English，验证保存后内容保持原样。")
         capture("reference-editor-zh")
         click("保存")

@@ -103,7 +103,8 @@ jobs:
       - name: Build x86_64 debug and instrumentation APKs
         run: |
           set -o pipefail
-          gradle -I harness/validation/emulator.init.gradle :app:assembleDebug :app:assembleDebugAndroidTest --no-configuration-cache --stacktrace --console=plain 2>&1 | tee validation/emulator-build.log
+          gradle -I harness/validation/emulator.init.gradle :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon -Pkotlin.compiler.execution.strategy=in-process --no-configuration-cache --stacktrace --console=plain 2>&1 | tee validation/emulator-build.log
+          free -m | tee validation/memory-before-emulator.txt
       - name: Exercise real Android UI
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -120,6 +121,7 @@ jobs:
         run: |
           mkdir -p validation/runtime
           find validation/runtime -type f -name '*-result.txt' -exec cat {} \;
+          sudo dmesg --ctime | grep -Ei 'out of memory|killed process|oom' > validation/runtime/host-memory-events.txt || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -147,7 +149,8 @@ jobs:
             git fetch origin codex/localization-evidence
             git checkout -B codex/localization-evidence FETCH_HEAD
           else
-            git checkout -b codex/localization-evidence
+            git fetch origin main
+            git checkout -b codex/localization-evidence FETCH_HEAD
           fi
           python3 - <<'PY'
           from pathlib import Path
@@ -156,6 +159,8 @@ jobs:
           for artifact in Path('/tmp/amaya-ui-evidence').iterdir():
               api = artifact.name.split('-')[2]
               target = dest / ('api-' + api)
+              if target.exists():
+                  shutil.rmtree(target)
               target.mkdir(parents=True, exist_ok=True)
               for source in artifact.rglob('*'):
                   if source.is_file() and (source.suffix in ('.png', '.xml') or source.name.endswith('-result.txt')):
