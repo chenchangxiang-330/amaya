@@ -107,3 +107,6 @@ amaya/
 - `scripts/audit-android-code.py`: reusable Python inventory for large files, long lines, dead-code/import candidates, package/manifest drift, exact duplicate blocks, hardcoded literals, stale markers, and empty directories.
 - `scripts/map-android-filetree.py`: deterministic Android text-file tree with per-file line counts; output: `docs/local/audits/ANDROID-FILETREE-LINE-MAP.md`.
 - Deferred remote/bridge work: see `docs/local/audits/VISION-HOLD.md`; focus audits on local/core paths until the product direction is explicit.
+
+## Fork-only validation
+- `.github/workflows/localization-validation.yml` builds pinned upstream or localization commits on `codex/localization-validation`. Keep this workflow and validation artifacts out of the upstream localization PR.
