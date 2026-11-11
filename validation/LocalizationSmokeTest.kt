@@ -54,11 +54,8 @@ class LocalizationSmokeTest {
     private fun scrollTo(value: String): UiObject2 {
         repeat(9) {
             device.findObject(label(value))?.let {
-                // Keep the target clear of the fixed header and floating bottom navigation.
-                if (it.visibleBounds.centerY() in device.displayHeight / 6..device.displayHeight * 4 / 5) {
-                    SystemClock.sleep(500)
-                    return text(value)
-                }
+                SystemClock.sleep(500)
+                return text(value)
             }
             device.swipe(device.displayWidth / 2, device.displayHeight * 3 / 4,
                 device.displayWidth / 2, device.displayHeight / 3, 30)
@@ -85,7 +82,15 @@ class LocalizationSmokeTest {
 
     private fun openLanguage(chinese: Boolean) {
         repeat(3) {
-            scrollTo(if (chinese) "语言" else "Language").click()
+            val title = if (chinese) "语言" else "Language"
+            val row = scrollTo(title)
+            // Settings has a floating tab bar; move this row clear of it before tapping.
+            if (row.visibleBounds.centerY() > device.displayHeight * 4 / 5) {
+                device.swipe(device.displayWidth / 2, device.displayHeight * 3 / 4,
+                    device.displayWidth / 2, device.displayHeight / 2, 30)
+                SystemClock.sleep(500)
+            }
+            text(title).click()
             val marker = if (chinese) "English" else "简体中文"
             if (device.wait(Until.hasObject(label(marker)), 2_000)) return
         }
@@ -122,7 +127,10 @@ class LocalizationSmokeTest {
         click("管理模型")
         capture("models-empty-zh")
         click("添加模型服务商")
-        scrollTo("OpenAI-compatible").click()
+        for (attempt in 1..3) {
+            scrollTo("OpenAI-compatible").click()
+            if (device.wait(Until.hasObject(By.clazz("android.widget.EditText")), 3_000)) break
+        }
         fields("中文测试服务", "not-a-url", "")
         scrollTo("连接").click()
         text("无法完成操作")
