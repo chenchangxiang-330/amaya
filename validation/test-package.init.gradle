@@ -5,6 +5,10 @@ gradle.beforeProject { project ->
             android.buildTypes.getByName('debug').applicationIdSuffix = '.debug.fix'
             android.buildTypes.getByName('debug').versionNameSuffix = '-fix'
             android.sourceSets.getByName('debug').manifest.srcFile(project.rootProject.file('harness/validation/test-manifest.xml'))
+            def testKeystore = System.getenv('AMAYA_DEBUG_KEYSTORE')
+            if (testKeystore) {
+                android.signingConfigs.getByName('debug').storeFile = new File(testKeystore)
+            }
         }
     }
 }

@@ -116,3 +116,4 @@ amaya/
 - Regression UI checks cover photo/file picker results and persistent project conversation renaming. Only the phone build caches a fork-only debug keystore for consistent future test updates; no keystore is uploaded or included in the application PR.
 
 - `validation/test-package.init.gradle` and `test-manifest.xml` give the phone and emulator debug APKs the same parallel-install ID `com.amaya.intelligence.debug.fix` and visible test label, without changing the application source branch or replacing an older differently signed test installation.
+- Phone validation uses an explicit `AMAYA_DEBUG_KEYSTORE` path cached by Actions; cache eviction can still require a new test signing identity. A workflow push marked `[apk-only]` rebuilds phone checks without repeating unchanged emulator checks or overwriting their evidence.

@@ -40,11 +40,20 @@ jobs:
           git status --porcelain --untracked-files=no | tee validation/source-status.txt
           java -version 2>&1 | tee validation/java.txt
           python3 harness/validation/check_resources.py | tee validation/resources.txt
+      - name: Set fork-only signing path
+        run: echo "AMAYA_DEBUG_KEYSTORE=$RUNNER_TEMP/amaya-test-signing/debug.keystore" >> "$GITHUB_ENV"
       - name: Retain fork-only debug signing identity
         uses: actions/cache@v4
         with:
-          path: ~/.android/debug.keystore
-          key: amaya-debug-signing-v1
+          path: ${{ env.AMAYA_DEBUG_KEYSTORE }}
+          key: amaya-debug-signing-v2
+      - name: Prepare explicit fork-only test signer
+        run: |
+          mkdir -p "$(dirname "$AMAYA_DEBUG_KEYSTORE")"
+          if [ ! -s "$AMAYA_DEBUG_KEYSTORE" ]; then
+            keytool -genkeypair -keystore "$AMAYA_DEBUG_KEYSTORE" -storepass android -keypass android \
+              -alias AndroidDebugKey -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+          fi
       - name: Build debug ARM APKs
         run: |
           set -o pipefail
@@ -72,6 +81,7 @@ jobs:
           retention-days: 30
           path: app/build/outputs/apk/debug/app-arm64-v8a-debug.apk
   emulator:
+    if: github.repository == 'chenchangxiang-330/amaya' && !contains(github.event.head_commit.message, '[apk-only]')
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     strategy:
@@ -136,7 +146,7 @@ jobs:
           path: validation/
   evidence:
     needs: [localization, emulator]
-    if: always() && github.repository == 'chenchangxiang-330/amaya' && needs.localization.result == 'success'
+    if: always() && github.repository == 'chenchangxiang-330/amaya' && needs.localization.result == 'success' && needs.emulator.result != 'skipped'
     runs-on: ubuntu-24.04
     permissions:
       contents: write
