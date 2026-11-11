@@ -6,14 +6,14 @@ on:
 permissions:
   contents: read
 jobs:
-  baseline:
+  localization:
     if: github.repository == 'chenchangxiang-330/amaya'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: fbc1f1e79744bacc60ad5ba5ba51d08570c66521
+          ref: bb942fed9b9e0a77cc956660804d422fc19bfaa3
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -25,11 +25,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.14.3'
-      - name: Record unmodified upstream source
+      - name: Record localization source
         run: |
           mkdir -p validation
           git rev-parse HEAD | tee validation/source-sha.txt
-          git status --porcelain | tee validation/source-status.txt
+          git status --porcelain --untracked-files=no | tee validation/source-status.txt
           java -version 2>&1 | tee validation/java.txt
       - name: Build debug ARM APKs
         run: |
@@ -43,7 +43,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: unmodified-upstream-baseline
+          name: simplified-chinese-debug
           retention-days: 30
           path: |
             validation/
