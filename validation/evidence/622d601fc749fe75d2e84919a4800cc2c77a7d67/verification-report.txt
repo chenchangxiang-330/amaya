@@ -1,0 +1,66 @@
+Amaya 照片附件与项目对话重命名修复验证
+
+源码分支：https://github.com/chenchangxiang-330/amaya/tree/codex/photo-attachments-and-project-renaming
+源码提交：622d601fc749fe75d2e84919a4800cc2c77a7d67
+比较基线：ba4fbc02b344649569a0faeb12a71e51bb53f46d（中文化 PR #10 的提交）
+手机构建与检查 Actions：https://github.com/chenchangxiang-330/amaya/actions/runs/42995857240
+Android 11/13 运行验证 Actions：https://github.com/chenchangxiang-330/amaya/actions/runs/42995857240
+
+修复内容
+1. 聊天“添加文件”返回后，输入框原来只记住初始化时的文件路径，未收到后续选择结果。现改为使用父级持有的附件状态，并统一移除与发送后的清理。
+2. 通过“添加文件”选择的 JPEG/PNG 等照片现在按图片附件加载，使用 ContentResolver 读取 URI，发送时走已有图片消息接口；不会把照片二进制当作文本文件。大图按尺寸采样，读取失败会提示。
+3. 侧栏项目内对话增加长按操作菜单：重命名与删除。重命名会校验非空名称，保留对话 ID、消息和项目归属，通过现有保存互斥锁更新数据库，并保护用户名称不被自动标题覆盖。普通本地聊天也可使用同一入口。
+4. 不支持图片的模型会提示切换模型，并保留附件及输入文字。
+5. 新增界面文案同时维护英文与简体中文。没有升级 SDK/Gradle/应用依赖，也没有改动远程服务协议或数据库结构。
+
+检查与运行
+首次修复构建：https://github.com/chenchangxiang-330/amaya/actions/runs/42988198787
+该次 ARM64 构建、单元测试和 lint 通过；Android 11 真实截图已经显示照片附件、文本附件与图片消息。完整 UI 套件被测试脚本数据库文件名大小写错误及 Android 13 表单加载时序打断；修正了测试脚本后重新执行。
+最终提交 622d601fc749fe75d2e84919a4800cc2c77a7d67：ARM64 debug 构建、现有单元测试和 Android lint 全部通过；483 项中英文字符串/复数、占位符及英文回退检查通过。
+Android 11/API 30 与 Android 13/API 33 的最终运行套件各 9/9 通过，共 79 张真实截图（API 30 为 39 张，API 33 为 40 张）。九组包括：中文核心流程、照片/文本附件、项目对话重命名、重命名后重启、中文重启与切换英文、英文重启与跟随系统、中文系统跟随、未支持系统语言的英文回退、1.3 倍字号语言弹窗。
+照片检查实际打开 Android 系统文件选择器，验证 PNG/JPEG 与文本附件、移除及重新选择，发送后的数据库 MIME 为 image/jpeg，已保存数据能解码成图片。测试图片为蓝色合成夹具，不是模拟模型回复。
+重命名检查验证空名称无法保存、取消不改名、保存中文名、取消删除，并比对对话 ID 与消息 JSON 在改名及进程重启后保持一致。已人工核对最终照片/重命名/重启截图。
+UI 命令：gradle -I harness/validation/test-package.init.gradle -I harness/validation/emulator.init.gradle :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon -Pkotlin.compiler.execution.strategy=in-process --no-configuration-cache；模拟器中运行 bash validation/run-emulator-checks.sh。手机检查的完整命令和证书信息见同目录 phone-build-summary.txt。
+新回归检查通过系统文件选择器选取 PNG、JPEG 和中文文本文件，检查显示、移除及重选；检查图片作为图片附件持久化；检查项目对话取消重命名、拒绝空名称、保存中文名称、取消删除，以及重启后名称和消息保留。
+沿用语言切换、系统语言、英文回退与字号等核心回归检查。
+证据：https://github.com/chenchangxiang-330/amaya/tree/c12ac144265cd19134a903c2ca794f4f5a2d97f2/validation/evidence/622d601fc749fe75d2e84919a4800cc2c77a7d67
+
+安装说明
+APK：https://github.com/chenchangxiang-330/amaya/actions/runs/42995857240/artifacts/13844127112
+版本：1.0.3-fix / versionCode 4，ARM64，Android 8.0/API 26 起。
+测试应用标签：Amaya 修复测试
+应用 ID：com.amaya.intelligence.debug.fix
+签名：Android Debug 测试证书，非原作者发行签名。证书 SHA-256：73ebbf39268d08f7a67ca0be0f221be4557f7e514204edb05e321e2598a4d17f。最终构建实际恢复签名缓存，与先前并存测试包的证书一致，可覆盖更新该测试包。
+APK 校验值：SHA-256 c85468eaad414d8317db0eb387316d793d79d18d34e3a7f6ec2d281583438aa5
+上一版测试 APK 使用不同的临时签名，无法直接覆盖安装。这次在 Fork 验证工作流中使用独立测试应用 ID，可与旧版并存，不要求卸载旧版。旧项目、聊天和模型设置保留在旧应用；不会自动迁移到独立测试包。后续测试包在 Fork 专用签名缓存可用时沿用测试证书；缓存被清除时需重新检查证书，不能保证永久可覆盖更新。
+应用 ID、标签覆盖、签名缓存、UI 夹具和验证工作流仅位于 Fork 验证分支，没有混入修复代码或上游中文化 PR。模拟器与手机来自同一源码、debug 变体和测试包配置；模拟器为 x86_64、独立临时测试签名，手机交付为 arm64-v8a、显式缓存的测试签名。
+
+未验证与限制
+没有使用真实模型 API 凭据或模拟成功响应。验证了选取、附件显示、图片消息持久化及不可达服务错误；真实模型收图、识图回答与端到端上传成功仍未验证。
+未进行实体 ARM64 手机、所有图片格式/方向或完整无障碍检查。不支持图片模型下的草稿恢复逻辑经过静态复核，本次运行套件未单独触发该分支。Android 11/API 30 和 Android 13/API 33 的最终实际结果以 Actions 和截图记录为准。
+实际截图显示：重命名弹窗的中文输入及取消/保存按钮完整可见；长对话标题在聊天顶部沿用原有淡出截断样式，完整名称可在侧栏及重命名框查看。系统文件选择器由 Android 提供，文案跟随系统语言；底层模型错误详情仍可能为英文。
+所有开发、构建、模拟器、APK 与截图都保存在云端，没有自动下载至用户 Mac。
+本次修复独立于上游 PR #10，未合并 PR、修改上游 main 或创建额外 Issue。
+
+维护与重建
+在云端仓库 git fetch upstream，切换 codex/photo-attachments-and-project-renaming，再合并 upstream/main；解决冲突后同步维护 values 与 values-zh-rCN 的资源键和参数。
+将新应用提交推送到 Fork，并更新 codex/localization-validation 工作流的 SOURCE_SHA。普通验证分支提交执行手机构建、单元测试、lint 及 API 30/33 模拟器检查；仅修改测试脚本可用 [ui-only]，仅调整手机打包可用 [apk-only]，报告必须同时指向对应提交的构建和运行结果。
+不要使用 [ui-only] 跳过新应用源码的手机构建检查。保留测试签名缓存并核对证书指纹，不能直接覆盖使用其他签名的 APK。验证脚本、测试包名/签名设置和证据始终保留在 Fork 专用分支。
+
+原中文化任务记录
+上游未经修改的构建基线：fbc1f1e79744bacc60ad5ba5ba51d08570c66521，https://github.com/chenchangxiang-330/amaya/actions/runs/42946659016 。构建与单元测试通过，lint 发现的既有 API 兼容问题已在中文化分支单独修复。
+中文化基线最终构建与运行：https://github.com/chenchangxiang-330/amaya/actions/runs/42956973326 。中文化源码为 ba4fbc02b344649569a0faeb12a71e51bb53f46d。
+上游 PR #10：https://github.com/nazrielnr/amaya/pull/10 ，普通 Open PR，未合并。此次功能修复位于独立分支，没有修改该 PR 的源码或扩大其范围。
+此前完整中文化验证报告：https://github.com/chenchangxiang-330/amaya/blob/5e3c30f0429c82878a7daf1bca4bb583e4ed9a4b/validation/evidence/ba4fbc02b344649569a0faeb12a71e51bb53f46d/verification-report.txt
+仍存在的 PR 文案阻塞：再次读取发现正文为 2964 字符，在 Emulator APKs 处截断。GitHub 连接器此前编辑上游 PR 返回 403 Resource not accessible by integration。最小处理步骤：在 GitHub 的 PR 正文右上角菜单选择 Edit，替换为下方文件的 Raw 全文，再保存；不需要提供令牌。
+完整英文正文：https://github.com/chenchangxiang-330/amaya/blob/5e3c30f0429c82878a7daf1bca4bb583e4ed9a4b/validation/evidence/ba4fbc02b344649569a0faeb12a71e51bb53f46d/pull-request-body.txt
+
+下载与截图入口
+需登录 GitHub 下载 Artifact ZIP，再解压安装 APK；Artifacts 保留至 2026-12-11 UTC。
+构建日志、单元测试与 lint 报告：https://github.com/chenchangxiang-330/amaya/actions/runs/42995857240/artifacts/13843958553
+API 30 截图与运行日志：https://github.com/chenchangxiang-330/amaya/actions/runs/42995857240/artifacts/13844891293
+API 33 截图与运行日志：https://github.com/chenchangxiang-330/amaya/actions/runs/42995857240/artifacts/13844816109
+photo-picked-through-add-file.png：https://github.com/chenchangxiang-330/amaya/blob/c12ac144265cd19134a903c2ca794f4f5a2d97f2/validation/evidence/622d601fc749fe75d2e84919a4800cc2c77a7d67/api-33/photo-picked-through-add-file.png
+photo-message-without-live-api.png：https://github.com/chenchangxiang-330/amaya/blob/c12ac144265cd19134a903c2ca794f4f5a2d97f2/validation/evidence/622d601fc749fe75d2e84919a4800cc2c77a7d67/api-33/photo-message-without-live-api.png
+rename-project-conversation-dialog.png：https://github.com/chenchangxiang-330/amaya/blob/c12ac144265cd19134a903c2ca794f4f5a2d97f2/validation/evidence/622d601fc749fe75d2e84919a4800cc2c77a7d67/api-33/rename-project-conversation-dialog.png
+renamed-project-conversation-after-restart.png：https://github.com/chenchangxiang-330/amaya/blob/c12ac144265cd19134a903c2ca794f4f5a2d97f2/validation/evidence/622d601fc749fe75d2e84919a4800cc2c77a7d67/api-33/renamed-project-conversation-after-restart.png

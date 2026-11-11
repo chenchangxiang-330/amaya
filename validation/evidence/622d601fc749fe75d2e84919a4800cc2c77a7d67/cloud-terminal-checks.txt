@@ -1,0 +1,4 @@
+Cloud workspace: /workspace/amaya, Linux x86_64 Kata/overlay; no local Mac clone, SDK, cache, APK or emulator.
+Final source: 622d601fc749fe75d2e84919a4800cc2c77a7d67
+Commands reviewed: git status --short (clean); git diff --stat ba4fbc02b344649569a0faeb12a71e51bb53f46d..HEAD (15 files); git -c core.whitespace=cr-at-eol diff ba4fbc02b344649569a0faeb12a71e51bb53f46d..HEAD --check (passed).
+Build, unit tests, lint and runtime checks ran on Fork GitHub Actions, not this terminal. See phone-build-summary.txt, source.json and the API result files.

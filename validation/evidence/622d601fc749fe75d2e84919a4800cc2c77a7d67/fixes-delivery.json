@@ -4,7 +4,7 @@
   "base_sha": "ba4fbc02b344649569a0faeb12a71e51bb53f46d",
   "workflow_branch": "codex/localization-validation",
   "run": 42995857240,
-  "status": "Final ARM64 build/unit/lint/resources passed; final API30/API33 runtime checks in progress",
+  "status": "COMPLETE: final build, unit tests, lint, resources and API30/API33 runtime checks passed",
   "root_causes": [
     "Child composer remembered initial file path without receiving subsequent picker results",
     "Generic file selection treated photos as text-file paths",
@@ -25,7 +25,7 @@
   "phone_run": 42995857240,
   "phone_apk_sha256": "c85468eaad414d8317db0eb387316d793d79d18d34e3a7f6ec2d281583438aa5",
   "phone_apk_artifact": 13844127112,
-  "api30_result": "pending for final source; prior source 9/9 passed",
+  "api30_result": "9/9 PASS",
   "superseded_run": 42992784538,
   "superseded_run_status": "cancelled after replacement started; API33 rename/restart passed before cancellation, picker test used obsolete selector",
   "cancellation_run": 42994922693,
@@ -43,5 +43,26 @@
   "previous_phone_test_certificate_sha256": "73ebbf39268d08f7a67ca0be0f221be4557f7e514204edb05e321e2598a4d17f",
   "phone_checks_artifact": 13843958553,
   "signing_cache_restore_verified": true,
-  "api33_result": "pending for final source; prior source 9/9 passed"
+  "api33_result": "9/9 PASS",
+  "source_diff_files": 15,
+  "final_run": 42995857240,
+  "final_run_result": "success",
+  "evidence_sha": "c12ac144265cd19134a903c2ca794f4f5a2d97f2",
+  "screenshots": {
+    "api-30": 39,
+    "api-33": 40
+  },
+  "runtime_artifacts": {
+    "api30": 13844891293,
+    "api33": 13844816109
+  },
+  "final_verified_at": "2026-11-11T09:46:02.565097+00:00",
+  "unverified": [
+    "Live model receipt/vision response; no API credentials used",
+    "Physical ARM64 phone, all image formats/orientations, full accessibility",
+    "Non-vision-model draft restoration branch was statically reviewed but not separately exercised by UI tests"
+  ],
+  "remaining_blocker": "PR #10 body remains truncated; GitHub integration lacks upstream PR edit permission. Full text and minimal manual edit steps are in the report.",
+  "pr10_state": "open",
+  "pr10_draft": false
 }
