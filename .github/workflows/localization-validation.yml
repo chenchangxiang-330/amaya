@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 env:
-  SOURCE_SHA: ba4fbc02b344649569a0faeb12a71e51bb53f46d
+  SOURCE_SHA: 09ec145e44c80ad6f97d4cfd6c37a40c99853d11
 jobs:
   localization:
     if: github.repository == 'chenchangxiang-330/amaya'
@@ -39,6 +39,11 @@ jobs:
           git status --porcelain --untracked-files=no | tee validation/source-status.txt
           java -version 2>&1 | tee validation/java.txt
           python3 harness/validation/check_resources.py | tee validation/resources.txt
+      - name: Retain fork-only debug signing identity
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: amaya-debug-signing-v1
       - name: Build debug ARM APKs
         run: |
           set -o pipefail

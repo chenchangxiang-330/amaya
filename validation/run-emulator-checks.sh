@@ -27,13 +27,16 @@ logcat_pid=$!
 collector_pid=$!
 run_test() {
   adb shell am force-stop com.amaya.intelligence.debug
-  adb shell am instrument -w -e class "com.amaya.intelligence.localization.LocalizationSmokeTest#$1" \
+  timeout 300s adb shell am instrument -w -e class "com.amaya.intelligence.localization.LocalizationSmokeTest#$1" \
     com.amaya.intelligence.debug.test/androidx.test.runner.AndroidJUnitRunner | tee "validation/runtime/$1.log"
   if ! grep -q 'OK (1 test)' "validation/runtime/$1.log"; then
     exit 1
   fi
 }
 run_test chineseCoreFlow
+run_test pickedPhotosAndFilesAreVisible
+run_test projectConversationCanBeRenamed
+run_test renamedConversationSurvivesRestart
 run_test chinesePersistsThenEnglish
 run_test englishPersistsThenSystem
 set_system_locale() {

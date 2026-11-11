@@ -112,3 +112,5 @@ amaya/
 - `.github/workflows/localization-validation.yml` builds pinned upstream or localization commits on `codex/localization-validation`. Keep this workflow and validation artifacts out of the upstream localization PR.
 - `validation/` contains the fork-only emulator ABI overlay, UI automation, and collected evidence; never include it in the upstream PR.
 - The evidence job alone has `contents: write` to retain synthetic-test screenshots on `codex/localization-evidence`; build and emulator jobs remain read-only.
+
+- Regression UI checks cover photo/file picker results and persistent project conversation renaming. Only the phone build caches a fork-only debug keystore for consistent future test updates; no keystore is uploaded or included in the application PR.

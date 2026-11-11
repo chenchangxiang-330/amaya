@@ -211,6 +211,139 @@ class LocalizationSmokeTest {
         capture("chat-without-live-api-zh")
     }
 
+    private fun seedPickerFile(name: String, mime: String, image: Boolean): android.net.Uri {
+        val collection = if (image) android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            else android.provider.MediaStore.Downloads.EXTERNAL_CONTENT_URI
+        val values = android.content.ContentValues().apply {
+            put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, name)
+            put(android.provider.MediaStore.MediaColumns.MIME_TYPE, mime)
+            put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, if (image) "Pictures/AmayaValidation" else "Download/AmayaValidation")
+            put(android.provider.MediaStore.MediaColumns.IS_PENDING, 1)
+        }
+        val uri = context.contentResolver.insert(collection, values)!!
+        context.contentResolver.openOutputStream(uri)!!.use { output ->
+            if (image) {
+                val bitmap = android.graphics.Bitmap.createBitmap(2400, 1200, android.graphics.Bitmap.Config.ARGB_8888)
+                bitmap.eraseColor(android.graphics.Color.BLUE)
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output)
+                bitmap.recycle()
+            } else output.write("中文文件内容，用于验证附件显示与重选。".toByteArray())
+        }
+        context.contentResolver.update(uri, android.content.ContentValues().apply {
+            put(android.provider.MediaStore.MediaColumns.IS_PENDING, 0)
+        }, null, null)
+        return uri
+    }
+
+    private fun pickFile(name: String) {
+        desc("添加附件")
+        click("添加文件")
+        val recent = device.wait(Until.findObject(By.text(name)), 8_000)
+        if (recent == null) {
+            capture("system-file-picker")
+            val roots = device.findObject(By.desc("Show roots")) ?: device.findObject(By.desc("显示根目录"))
+            roots?.click()
+            device.waitForIdle()
+            val location = if (name.endsWith(".png")) "Images" else "Downloads"
+            device.findObject(By.text(location))?.click()
+            device.waitForIdle()
+            device.findObject(By.text("AmayaValidation"))?.click()
+        }
+        find(By.text(name)).click()
+        device.waitForIdle()
+    }
+
+    private fun openProjectConversation(title: String) {
+        desc("菜单")
+        click("中文项目")
+        click(title)
+    }
+
+    private fun projectRecord(): Triple<Long, String, String> {
+        val file = context.databaseList().map(context::getDatabasePath).first { it.name.endsWith(".db") || it.name.contains("amaya") }
+        return android.database.sqlite.SQLiteDatabase.openDatabase(file.path, null, android.database.sqlite.SQLiteDatabase.OPEN_READONLY).use { db ->
+            db.rawQuery("SELECT id, title, messages_json FROM conversations WHERE assistant_mode = 'PROJECT' ORDER BY updated_at DESC LIMIT 1", null).use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                Triple(cursor.getLong(0), cursor.getString(1), cursor.getString(2))
+            }
+        }
+    }
+
+    @Test fun pickedPhotosAndFilesAreVisible() = recorded("photo-and-file-attachments") {
+        launch()
+        openProjectConversation("请概括中文项目资料")
+        seedPickerFile("中文照片.png", "image/png", true)
+        seedPickerFile("中文附件.txt", "text/plain", false)
+        pickFile("中文照片.png")
+        text("中文照片.jpg")
+        capture("photo-picked-through-add-file")
+        desc("移除")
+        assertFalse(device.hasObject(label("中文照片.jpg")))
+        pickFile("中文附件.txt")
+        text("中文附件.txt")
+        capture("text-file-attachment-visible")
+        desc("移除")
+        pickFile("中文附件.txt")
+        text("中文附件.txt")
+        desc("移除")
+        pickFile("中文照片.png")
+        text("中文照片.jpg")
+        fields("请查看这张测试图片")
+        desc("发送")
+        assertTrue(device.wait(Until.hasObject(label("无法完成操作")), 30_000))
+        SystemClock.sleep(1500)
+        val messages = org.json.JSONArray(projectRecord().third)
+        val photo = (0 until messages.length()).map { messages.getJSONObject(it) }
+            .first { it.optString("content") == "请查看这张测试图片" }
+        val attachments = photo.getJSONArray("attachments")
+        assertTrue("Photo is retained as an image attachment", attachments.length() > 0)
+        assertTrue(attachments.toString().contains("image/jpeg"))
+        assertFalse("Image bytes must not become text-file instructions", photo.getString("content").contains("Attached file content"))
+        capture("photo-message-without-live-api")
+    }
+
+    @Test fun projectConversationCanBeRenamed() = recorded("project-conversation-rename") {
+        launch()
+        val before = projectRecord()
+        desc("菜单")
+        click("中文项目")
+        text(before.second).longClick()
+        click("重命名对话")
+        fields("")
+        assertFalse("Blank names cannot be saved", text("保存").isEnabled)
+        fields("取消的名称")
+        click("取消")
+        assertEquals(before.second, projectRecord().second)
+        text(before.second).longClick()
+        click("重命名对话")
+        fields("项目照片讨论（已重命名）")
+        capture("rename-project-conversation-dialog")
+        click("保存")
+        text("项目照片讨论（已重命名）")
+        val after = projectRecord()
+        assertEquals(before.first, after.first)
+        assertEquals(before.third, after.third)
+        File(output, "renamed-conversation.json").writeText(org.json.JSONObject()
+            .put("id", before.first).put("messages", before.third).toString())
+        capture("project-conversation-renamed")
+        text(after.second).longClick()
+        click("删除")
+        text("删除对话？")
+        click("取消")
+        assertEquals(after.second, projectRecord().second)
+    }
+
+    @Test fun renamedConversationSurvivesRestart() = recorded("renamed-conversation-restart") {
+        launch()
+        openProjectConversation("项目照片讨论（已重命名）")
+        val before = org.json.JSONObject(File(output, "renamed-conversation.json").readText())
+        val after = projectRecord()
+        assertEquals(before.getLong("id"), after.first)
+        assertEquals(before.getString("messages"), after.third)
+        assertEquals("项目照片讨论（已重命名）", after.second)
+        capture("renamed-project-conversation-after-restart")
+    }
+
     @Test fun chinesePersistsThenEnglish() = recorded("zh-restart") {
         launch()
         desc("菜单")
