@@ -31,15 +31,16 @@ run_test() {
   timeout 300s adb shell am instrument -w -e class "com.amaya.intelligence.localization.LocalizationSmokeTest#$1" \
     ${amaya_test_package}.test/androidx.test.runner.AndroidJUnitRunner | tee "validation/runtime/$1.log"
   if ! grep -q 'OK (1 test)' "validation/runtime/$1.log"; then
-    exit 1
+    return 1
   fi
 }
 run_test chineseCoreFlow
-run_test pickedPhotosAndFilesAreVisible
-run_test projectConversationCanBeRenamed
-run_test renamedConversationSurvivesRestart
-run_test chinesePersistsThenEnglish
-run_test englishPersistsThenSystem
+amaya_tests_failed=0
+run_test pickedPhotosAndFilesAreVisible || amaya_tests_failed=1
+run_test projectConversationCanBeRenamed || amaya_tests_failed=1
+run_test renamedConversationSurvivesRestart || amaya_tests_failed=1
+run_test chinesePersistsThenEnglish || amaya_tests_failed=1
+run_test englishPersistsThenSystem || amaya_tests_failed=1
 set_system_locale() {
   adb root
   adb shell setprop persist.sys.locale "$1"
@@ -51,9 +52,10 @@ set_system_locale() {
   done
 }
 set_system_locale zh-CN
-run_test followsChineseSystem
+run_test followsChineseSystem || amaya_tests_failed=1
 set_system_locale fr-FR
-run_test unsupportedSystemFallsBackToEnglish
+run_test unsupportedSystemFallsBackToEnglish || amaya_tests_failed=1
 adb shell settings put system font_scale 1.3
-run_test largeFontLanguageDialog
+run_test largeFontLanguageDialog || amaya_tests_failed=1
 collect_evidence
+exit "$amaya_tests_failed"

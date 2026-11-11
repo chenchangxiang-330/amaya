@@ -333,7 +333,13 @@ class LocalizationSmokeTest {
             .first { it.optString("content") == "请查看这张测试图片" }
         val attachments = photo.getJSONArray("attachments")
         assertTrue("Photo is retained as an image attachment", attachments.length() > 0)
-        assertTrue(attachments.toString().contains("image/jpeg"))
+        val savedImage = attachments.getJSONObject(0)
+        assertEquals("image/jpeg", savedImage.getString("mimeType"))
+        val bytes = android.util.Base64.decode(savedImage.getString("dataBase64"), android.util.Base64.DEFAULT)
+        val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+        assertNotNull("Stored attachment decodes as an image", bitmap)
+        assertTrue("Large photo is sampled", maxOf(bitmap!!.width, bitmap.height) <= 2048)
+        bitmap.recycle()
         assertFalse("Image bytes must not become text-file instructions", photo.getString("content").contains("Attached file content"))
         capture("photo-message-without-live-api")
     }
