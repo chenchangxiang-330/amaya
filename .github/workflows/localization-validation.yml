@@ -66,7 +66,6 @@ jobs:
           retention-days: 30
           path: app/build/outputs/apk/debug/app-arm64-v8a-debug.apk
   emulator:
-    needs: localization
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     strategy:
@@ -120,8 +119,7 @@ jobs:
         timeout-minutes: 1
         run: |
           mkdir -p validation/runtime
-          timeout 15s adb pull /sdcard/Android/data/com.amaya.intelligence.debug/files/locale-validation validation/runtime/ || true
-          timeout 15s adb logcat -d > validation/runtime/logcat.txt || true
+          find validation/runtime -type f -name '*-result.txt' -exec cat {} \;
       - uses: actions/upload-artifact@v4
         if: always()
         with:

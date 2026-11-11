@@ -21,7 +21,7 @@ class LocalizationSmokeTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context = instrumentation.targetContext
     private val device = UiDevice.getInstance(instrumentation)
-    private val output = File(context.getExternalFilesDir(null), "locale-validation").apply { mkdirs() }
+    private val output = File(context.filesDir, "locale-validation").apply { mkdirs() }
 
     private fun launch() {
         context.startActivity(context.packageManager.getLaunchIntentForPackage(context.packageName)!!.apply {
@@ -58,7 +58,7 @@ class LocalizationSmokeTest {
     }
 
     private fun fields(vararg values: String) {
-        val edits = device.findObjects(By.clazz("android.widget.EditText"))
+        val edits = device.wait(Until.findObjects(By.clazz("android.widget.EditText")), 10_000).orEmpty()
         assertTrue("Expected ${values.size} edit fields, found ${edits.size}", edits.size >= values.size)
         values.forEachIndexed { index, value -> edits[index].text = value }
         device.waitForIdle()
@@ -85,7 +85,7 @@ class LocalizationSmokeTest {
         click("Download")
         click("Amaya-l10n")
         capture("workspace-picker-zh")
-        click("选择此文件夹")
+        desc("选择")
     }
 
     @Test fun chineseCoreFlow() = recorded("core-flow") {
