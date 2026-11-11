@@ -1,0 +1,10 @@
+// Fork-only ABI/test overlay. Production source and build variants are unchanged.
+gradle.beforeProject { project ->
+    project.plugins.withId('com.android.application') {
+        project.androidComponents.finalizeDsl { android ->
+            android.splits.abi.reset()
+            android.splits.abi.include('x86_64')
+        }
+        project.dependencies.add('androidTestImplementation', 'androidx.test.uiautomator:uiautomator:2.3.0')
+    }
+}

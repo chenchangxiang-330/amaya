@@ -5,15 +5,21 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+env:
+  SOURCE_SHA: a6d2b04d45169fbcb1df1f67c3364347b5d59087
 jobs:
   localization:
     if: github.repository == 'chenchangxiang-330/amaya'
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: bb942fed9b9e0a77cc956660804d422fc19bfaa3
+          ref: ${{ env.SOURCE_SHA }}
+      - uses: actions/checkout@v4
+        with:
+          path: harness
+          sparse-checkout: validation
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -25,27 +31,99 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.14.3'
-      - name: Record localization source
+          cache-read-only: false
+      - name: Record source and check resources
         run: |
           mkdir -p validation
           git rev-parse HEAD | tee validation/source-sha.txt
           git status --porcelain --untracked-files=no | tee validation/source-status.txt
           java -version 2>&1 | tee validation/java.txt
+          python3 harness/validation/check_resources.py | tee validation/resources.txt
       - name: Build debug ARM APKs
         run: |
           set -o pipefail
           gradle :app:assembleDebug --stacktrace --console=plain 2>&1 | tee validation/build.log
+          sha256sum app/build/outputs/apk/debug/*arm64-v8a*.apk | tee validation/apk-sha256.txt
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --print-certs app/build/outputs/apk/debug/app-arm64-v8a-debug.apk | tee validation/signature.txt
       - name: Unit tests and lint
-        if: success()
         run: |
           set -o pipefail
           gradle :app:testDebugUnitTest :app:lintDebug --continue --stacktrace --console=plain 2>&1 | tee validation/checks.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: simplified-chinese-debug
+          name: localization-checks
           retention-days: 30
           path: |
             validation/
             app/build/reports/
-            app/build/outputs/apk/debug/
+            app/build/test-results/
+            app/build/outputs/apk/debug/output-metadata.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: amaya-1.0.3-debug-arm64-v8a
+          retention-days: 30
+          path: app/build/outputs/apk/debug/app-arm64-v8a-debug.apk
+  emulator:
+    needs: localization
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        api: [30, 35]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+      - uses: actions/checkout@v4
+        with:
+          path: harness
+          sparse-checkout: validation
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36 build-tools;35.0.0'
+          log-accepted-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.14.3'
+          cache-read-only: false
+      - name: Prepare fork-only UI checks
+        run: |
+          mkdir -p app/src/androidTest/java/com/amaya/intelligence/localization validation
+          cp harness/validation/LocalizationSmokeTest.kt app/src/androidTest/java/com/amaya/intelligence/localization/
+          cp harness/validation/run-emulator-checks.sh validation/
+          git rev-parse HEAD | tee validation/source-sha.txt
+          test -e /dev/kvm
+          sudo chmod 666 /dev/kvm
+      - name: Build x86_64 debug and instrumentation APKs
+        run: |
+          set -o pipefail
+          gradle -I harness/validation/emulator.init.gradle :app:assembleDebug :app:assembleDebugAndroidTest --no-configuration-cache --stacktrace --console=plain 2>&1 | tee validation/emulator-build.log
+      - name: Exercise real Android UI
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: bash validation/run-emulator-checks.sh
+      - name: Collect available runtime evidence
+        if: always()
+        run: |
+          mkdir -p validation/runtime
+          adb pull /sdcard/Android/data/com.amaya.intelligence.debug/files/locale-validation validation/runtime/ || true
+          adb logcat -d > validation/runtime/logcat.txt || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: emulator-api-${{ matrix.api }}-screenshots-and-logs
+          retention-days: 30
+          path: validation/

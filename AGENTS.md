@@ -110,3 +110,4 @@ amaya/
 
 ## Fork-only validation
 - `.github/workflows/localization-validation.yml` builds pinned upstream or localization commits on `codex/localization-validation`. Keep this workflow and validation artifacts out of the upstream localization PR.
+- `validation/` contains the fork-only emulator ABI overlay, UI automation, and collected evidence; never include it in the upstream PR.
