@@ -110,6 +110,7 @@ class LocalizationSmokeTest {
         fields("中文测试服务", "not-a-url", "")
         scrollTo("连接").click()
         text("无法完成操作")
+        text("请输入包含 https:// 等协议前缀的有效网址")
         capture("provider-invalid-url-zh")
         fields("中文测试服务", "https://example.invalid/v1", "")
         scrollTo("跳过模型列表并保存").click()
@@ -120,6 +121,10 @@ class LocalizationSmokeTest {
         fields("localization-test-model", "测试模型")
         click("添加模型")
         capture("custom-model-zh")
+        desc("配置 测试模型")
+        text("配置模型")
+        capture("model-config-zh")
+        back()
         back()
         back()
 

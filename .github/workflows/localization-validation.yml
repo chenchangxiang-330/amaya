@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 env:
-  SOURCE_SHA: dea355a8caf5651413033588585d20e0131f149e
+  SOURCE_SHA: ba4fbc02b344649569a0faeb12a71e51bb53f46d
 jobs:
   localization:
     if: github.repository == 'chenchangxiang-330/amaya'
