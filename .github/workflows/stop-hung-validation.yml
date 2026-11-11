@@ -1,0 +1,18 @@
+name: Stop hung validation collector (fork only)
+on:
+  push:
+    branches: [codex/localization-validation]
+permissions:
+  actions: write
+jobs:
+  stop:
+    if: github.repository == 'chenchangxiang-330/amaya'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const run = await github.rest.actions.getWorkflowRun({...context.repo, run_id: 42949412045});
+            if (run.data.status !== 'completed') {
+              await github.rest.actions.cancelWorkflowRun({...context.repo, run_id: 42949412045});
+            }

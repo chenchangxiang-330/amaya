@@ -117,10 +117,11 @@ jobs:
           script: bash validation/run-emulator-checks.sh
       - name: Collect available runtime evidence
         if: always()
+        timeout-minutes: 1
         run: |
           mkdir -p validation/runtime
-          adb pull /sdcard/Android/data/com.amaya.intelligence.debug/files/locale-validation validation/runtime/ || true
-          adb logcat -d > validation/runtime/logcat.txt || true
+          timeout 15s adb pull /sdcard/Android/data/com.amaya.intelligence.debug/files/locale-validation validation/runtime/ || true
+          timeout 15s adb logcat -d > validation/runtime/logcat.txt || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
