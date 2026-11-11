@@ -498,6 +498,8 @@ class LocalizationSmokeTest {
             capture("image-rejection-retains-draft-and-attachment")
 
             settings(true)
+            // A project chat opens Settings on the Project tab.
+            desc("全局")
             click("管理模型")
             click("图片能力回归服务")
             val refreshed = runBlocking {
