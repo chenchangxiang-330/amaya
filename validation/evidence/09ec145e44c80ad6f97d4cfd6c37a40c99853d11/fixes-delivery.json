@@ -4,7 +4,7 @@
   "base_sha": "ba4fbc02b344649569a0faeb12a71e51bb53f46d",
   "workflow_branch": "codex/localization-validation",
   "run": 42991319960,
-  "status": "Final phone ARM64 build/unit/lint/resources and test signing cache succeeded; runtime UI checks pending after fixture corrections",
+  "status": "Build/unit/lint and API30/API33 nine-phase runtime checks all passed. Superseded by one-line draft-preservation source 622d601; final build in progress.",
   "root_causes": [
     "Child composer remembered initial file path without receiving subsequent picker results",
     "Generic file selection treated photos as text-file paths",
@@ -24,5 +24,11 @@
   "runtime_run": 42993001967,
   "phone_run": 42991785058,
   "phone_apk_sha256": "8feee891980694dd629e580c202cbeffb3579c1d159675bcb2d22e29a39688ec",
-  "phone_apk_artifact": 13842013460
+  "phone_apk_artifact": 13842013460,
+  "api30_result": "9/9 PASS",
+  "api33_result": "9/9 PASS",
+  "screenshots": 79,
+  "evidence_sha": "671851d37f9fa230b7ff190f971f63d2a97c5afc",
+  "superseded_by_source": "622d601fc749fe75d2e84919a4800cc2c77a7d67",
+  "final_run": 42995857240
 }
