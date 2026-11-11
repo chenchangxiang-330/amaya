@@ -29,11 +29,26 @@ class LocalizationSmokeTest {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         })
         device.waitForIdle()
+        dismissLauncherAnr()
     }
 
-    private fun find(selector: BySelector): UiObject2 =
-        device.wait(Until.findObject(selector), 10_000)
-            ?: throw AssertionError("Missing $selector. See failure screenshot.")
+    private fun dismissLauncherAnr() {
+        // A cold cloud emulator can ANR its launcher. Record it and close only that
+        // system app; an Amaya crash/ANR must remain visible and fail the check.
+        if (device.hasObject(By.pkg("android").text("Pixel Launcher isn't responding"))) {
+            capture("emulator-pixel-launcher-anr")
+            device.findObject(By.pkg("android").text("Close app"))!!.click()
+            device.waitForIdle()
+        }
+    }
+
+    private fun find(selector: BySelector): UiObject2 {
+        repeat(5) {
+            dismissLauncherAnr()
+            device.wait(Until.findObject(selector), 2_000)?.let { return it }
+        }
+        throw AssertionError("Missing $selector. See failure screenshot.")
+    }
 
     // Compose merges clickable row titles and supporting text into one accessibility node.
     private fun label(value: String) = By.text(Pattern.compile("^" + Pattern.quote(value) + "(?:\\n.*)?$", Pattern.DOTALL))
@@ -259,10 +274,19 @@ class LocalizationSmokeTest {
         device.waitForIdle()
     }
 
+    private fun conversationRow(title: String): UiObject2 {
+        // The title is a TextView child; long-click semantics belong to its row.
+        var row = text(title)
+        while (!row.isLongClickable) {
+            row = row.parent ?: throw AssertionError("No long-click action on conversation $title")
+        }
+        return row
+    }
+
     private fun openProjectConversation(title: String) {
         desc("菜单")
         click("中文项目")
-        find(label(title).longClickable(true)).click()
+        conversationRow(title).click()
         device.waitForIdle()
     }
 
@@ -319,14 +343,15 @@ class LocalizationSmokeTest {
         val before = projectRecord()
         desc("菜单")
         click("中文项目")
-        find(label(before.second).longClickable(true)).longClick()
+        conversationRow(before.second).longClick()
         click("重命名对话")
         fields("")
-        assertFalse("Blank names cannot be saved", text("保存").isEnabled)
+        assertTrue("Blank names cannot be saved",
+            generateSequence(text("保存")) { it.parent }.any { !it.isEnabled })
         fields("取消的名称")
         click("取消")
         assertEquals(before.second, projectRecord().second)
-        find(label(before.second).longClickable(true)).longClick()
+        conversationRow(before.second).longClick()
         click("重命名对话")
         fields("项目照片讨论（已重命名）")
         capture("rename-project-conversation-dialog")
@@ -339,7 +364,7 @@ class LocalizationSmokeTest {
         File(output, "renamed-conversation.json").writeText(org.json.JSONObject()
             .put("id", before.first).put("messages", before.third).toString())
         capture("project-conversation-renamed")
-        find(label(after.second).longClickable(true)).longClick()
+        conversationRow(after.second).longClick()
         click("删除")
         text("删除对话？")
         click("取消")
