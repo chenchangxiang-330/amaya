@@ -30,10 +30,23 @@
   "live_model_response_tested": false,
   "api_35_verified": false,
   "pull_request": {
-    "created": false,
+    "created": true,
+    "url": "https://github.com/nazrielnr/amaya/pull/10",
+    "number": 10,
     "title": "Add Simplified Chinese localization",
+    "state": "open",
+    "draft": false,
+    "merged": false,
+    "mergeable": true,
+    "mergeable_state": "clean",
     "base": "nazrielnr/amaya:main",
     "head": "chenchangxiang-330/amaya:codex/simplified-chinese",
-    "blocker": "GitHub integration returned HTTP 403 Resource not accessible by integration for both draft and ordinary PR creation; cloud Chrome has DNS_PROBE_FINISHED_NO_INTERNET"
+    "head_sha": "ba4fbc02b344649569a0faeb12a71e51bb53f46d",
+    "created_by": "chenchangxiang-330",
+    "upstream_checks": 0,
+    "body_complete": false,
+    "observed_body_characters": 2964,
+    "prepared_body_characters": 4810,
+    "remaining_action": "Replace the truncated PR description with pull-request-body.txt using the PR description Edit menu. GitHub integration PATCH returned HTTP 403 Resource not accessible by integration."
   }
 }

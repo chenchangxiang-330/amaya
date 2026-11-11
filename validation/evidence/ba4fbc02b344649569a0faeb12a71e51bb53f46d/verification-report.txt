@@ -4,7 +4,7 @@ Amaya 简体中文支持：云端验证报告
 上游基线：fbc1f1e79744bacc60ad5ba5ba51d08570c66521
 Fork：https://github.com/chenchangxiang-330/amaya
 开发分支：https://github.com/chenchangxiang-330/amaya/tree/codex/simplified-chinese
-上游 PR：尚未创建。GitHub 创建 Draft 与普通 PR 均返回 HTTP 403 Resource not accessible by integration；并非等待维护者批准。标题和英文正文已保存为同目录 pull-request-body.txt。
+上游 PR：https://github.com/nazrielnr/amaya/pull/10，普通 Open PR（非 Draft），由 chenchangxiang-330 提交。已核验目标 main、源码 SHA、6 个提交/61 个文件，GitHub mergeable=true、mergeable_state=clean。上游 Checks 为 0，Fork 最终 Actions 已全部通过。正文被预填链接截断，截图及未验证事项尚需从同目录 pull-request-body.txt 补齐；集成更新正文仍返回 HTTP 403。
 
 1. 环境与权限
 
@@ -74,4 +74,4 @@ Android 15/API 35 的多次尝试中，模拟器进程消失，ADB offline/conne
 
 在云端 git fetch upstream main 后，将本次分支同步到最新上游并解决资源冲突。新增或修改界面文案时，同时维护 values/strings.xml 和 values-zh-rCN/strings.xml，保留参数序号、类型和机器标识。
 重新运行资源检查与 gradle :app:testDebugUnitTest :app:lintDebug :app:assembleDebug。Fork 的 codex/localization-validation 分支中，先将 SOURCE_SHA 更新为待验证提交，再推送运行；工作流与夹具继续留在 Fork 专用分支。
-PR 提交仍被 GitHub 集成权限阻塞。云端共享 Chrome 还显示 DNS_PROBE_FINISHED_NO_INTERNET，无法通过网页代为提交。最小后续操作是使用 chenchangxiang-330 登录 GitHub，打开同目录 pr-create-url.txt 中已填好标题和正文的链接，点击 Create pull request；无需令牌。提交目标为 nazrielnr/amaya 的 main。没有合并 PR、修改上游 main 或发布额外 Issue。
+PR 已由用户创建并完成 API 核验。当前唯一交付补充是修复被长链接截断的 PR 正文：复制 pull-request-body.txt 的全部内容，在 PR #10 第一条说明右上角菜单选择 Edit，全选替换并保存。集成更新正文被 GitHub 403 拒绝；无需提供令牌，也不要重复创建 PR。没有合并 PR、修改上游 main 或发布额外 Issue。
