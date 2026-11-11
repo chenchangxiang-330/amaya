@@ -6,7 +6,7 @@ on:
 permissions:
   contents: read
 env:
-  SOURCE_SHA: a6d2b04d45169fbcb1df1f67c3364347b5d59087
+  SOURCE_SHA: dea355a8caf5651413033588585d20e0131f149e
 jobs:
   localization:
     if: github.repository == 'chenchangxiang-330/amaya'
@@ -127,3 +127,47 @@ jobs:
           name: emulator-api-${{ matrix.api }}-screenshots-and-logs
           retention-days: 30
           path: validation/
+  evidence:
+    needs: [localization, emulator]
+    if: always() && github.repository == 'chenchangxiang-330/amaya' && needs.localization.result == 'success'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: emulator-api-*-screenshots-and-logs
+          path: /tmp/amaya-ui-evidence
+      - name: Preserve screenshots in the fork evidence branch
+        env:
+          RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --heads origin codex/localization-evidence >/dev/null; then
+            git fetch origin codex/localization-evidence
+            git checkout -B codex/localization-evidence FETCH_HEAD
+          else
+            git checkout -b codex/localization-evidence
+          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          import os, shutil, json
+          dest = Path('validation/evidence') / os.environ['SOURCE_SHA']
+          for artifact in Path('/tmp/amaya-ui-evidence').iterdir():
+              api = artifact.name.split('-')[2]
+              target = dest / ('api-' + api)
+              target.mkdir(parents=True, exist_ok=True)
+              for source in artifact.rglob('*'):
+                  if source.is_file() and (source.suffix in ('.png', '.xml') or source.name.endswith('-result.txt')):
+                      shutil.copy2(source, target / source.name)
+          dest.mkdir(parents=True, exist_ok=True)
+          (dest / 'source.json').write_text(json.dumps({'source_sha': os.environ['SOURCE_SHA'], 'run': os.environ['RUN_URL'], 'variant': 'debug', 'emulator_abi': 'x86_64', 'phone_abi': 'arm64-v8a', 'live_model_response_tested': False}, indent=2))
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add validation/evidence
+          if ! git diff --cached --quiet; then
+            git commit -m "Record cloud UI evidence for $SOURCE_SHA [skip ci]"
+            git push origin HEAD:codex/localization-evidence
+          fi
