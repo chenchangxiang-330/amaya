@@ -8,6 +8,7 @@ permissions:
 env:
   SOURCE_SHA: 5120dc401fa0077a3eb358125c920f55f1fe36c8
   AMAYA_VALIDATION_PACKAGE: com.amaya.intelligence.debug.fix
+  AMAYA_CAPABILITY_ONLY: ${{ contains(github.event.head_commit.message, '[capability-only]') }}
 jobs:
   localization:
     if: github.repository == 'chenchangxiang-330/amaya' && !contains(github.event.head_commit.message, '[ui-only]')
@@ -182,7 +183,7 @@ jobs:
                   if source.is_file() and (source.suffix in ('.png', '.xml') or source.name.endswith('-result.txt') or source.name == 'host-memory-events.txt'):
                       shutil.copy2(source, target / source.name)
           dest.mkdir(parents=True, exist_ok=True)
-          (dest / 'source.json').write_text(json.dumps({'source_sha': os.environ['SOURCE_SHA'], 'run': os.environ['RUN_URL'], 'variant': 'debug', 'emulator_abi': 'x86_64', 'phone_abi': 'arm64-v8a', 'application_id': os.environ['AMAYA_VALIDATION_PACKAGE'], 'live_model_response_tested': False}, indent=2))
+          (dest / 'source.json').write_text(json.dumps({'source_sha': os.environ['SOURCE_SHA'], 'run': os.environ['RUN_URL'], 'variant': 'debug', 'emulator_abi': 'x86_64', 'phone_abi': 'arm64-v8a', 'application_id': os.environ['AMAYA_VALIDATION_PACKAGE'], 'live_model_response_tested': False, 'ui_scope': 'core/photo/rename/restart/image-capability' if os.environ['AMAYA_CAPABILITY_ONLY'] == 'true' else 'full-localization-and-capability'}, indent=2))
           PY
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

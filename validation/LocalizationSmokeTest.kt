@@ -518,9 +518,11 @@ class LocalizationSmokeTest {
             assertTrue("Refresh must read the fixture's catalog", fixture.catalogRequests > 0)
             capture("image-capability-refreshed-provider")
 
-            launch()
-            openProjectConversation("项目照片讨论（已重命名）")
-            pickFile("能力验证照片.png")
+            back() // Provider details -> inventory.
+            back() // Manage Models -> Settings.
+            back() // Settings -> the same project chat and its retained draft.
+            text("能力验证照片.jpg")
+            assertEquals(rejectedDraft, find(By.clazz("android.widget.EditText")).text)
             fields("请查看本地接口验证图片")
             desc("发送")
             val deadline = SystemClock.uptimeMillis() + 30_000

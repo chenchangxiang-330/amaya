@@ -39,6 +39,11 @@ amaya_tests_failed=0
 run_test pickedPhotosAndFilesAreVisible || amaya_tests_failed=1
 run_test projectConversationCanBeRenamed || amaya_tests_failed=1
 run_test renamedConversationSurvivesRestart || amaya_tests_failed=1
+if [ "${AMAYA_CAPABILITY_ONLY:-false}" = "true" ]; then
+  run_test refreshedImageCapabilityReachesProvider || amaya_tests_failed=1
+  collect_evidence
+  exit "$amaya_tests_failed"
+fi
 run_test chinesePersistsThenEnglish || amaya_tests_failed=1
 run_test englishPersistsThenSystem || amaya_tests_failed=1
 set_system_locale() {
