@@ -1,5 +1,9 @@
 # Repository Instructions
 
+This fork-only evidence branch stores cloud validation screenshots, UI hierarchies,
+and reports under `validation/evidence/<source SHA>/`. It is not part of the
+upstream localization pull request and intentionally contains no CI workflows.
+
 ## Scope
 - This file applies to the whole monorepo.
 - There are three major areas in this repo:
