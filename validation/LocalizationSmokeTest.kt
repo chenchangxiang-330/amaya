@@ -57,6 +57,14 @@ class LocalizationSmokeTest {
     private fun desc(value: String) { find(By.desc(value)).click(); device.waitForIdle() }
     private fun back() { device.pressBack(); device.waitForIdle() }
 
+    private fun tapPicker(selector: BySelector) {
+        repeat(3) {
+            try { find(selector).click(); device.waitForIdle(); return }
+            catch (_: androidx.test.uiautomator.StaleObjectException) { device.waitForIdle() }
+        }
+        throw AssertionError("Picker kept refreshing $selector")
+    }
+
     private fun capture(name: String) {
         // Allow Compose navigation/sheet transitions to finish before the visual record.
         SystemClock.sleep(750)
@@ -261,15 +269,16 @@ class LocalizationSmokeTest {
         val recent = device.wait(Until.findObject(By.text(name)), 8_000)
         if (recent == null) {
             capture("system-file-picker")
-            val roots = device.findObject(By.desc("Show roots")) ?: device.findObject(By.desc("显示根目录"))
-            roots?.click()
-            device.waitForIdle()
+            tapPicker(By.desc(Pattern.compile("Show roots|显示根目录")))
             val location = if (name.endsWith(".png") || name.endsWith(".jpg")) "Images" else "Downloads"
-            device.findObject(By.text(location))?.click()
-            device.waitForIdle()
-            device.findObject(By.text("AmayaValidation"))?.click()
+            // Android 13 also has an Images chip behind the open drawer.
+            // Select the actual root title, then wait for its folder listing.
+            tapPicker(By.res("android:id/title").text(location))
+            if (device.wait(Until.hasObject(By.res("android:id/title").text("AmayaValidation")), 5_000)) {
+                tapPicker(By.res("android:id/title").text("AmayaValidation"))
+            }
         }
-        find(By.text(name)).click()
+        tapPicker(By.res("android:id/title").text(name))
         assertTrue("Picker must return to the chat", device.wait(Until.hasObject(By.desc("添加附件")), 10_000))
         device.waitForIdle()
     }
