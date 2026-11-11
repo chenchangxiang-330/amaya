@@ -1,0 +1,24 @@
+Adds Simplified Chinese to the core Android flows using 483 Android string/plural resources, retaining English defaults, existing layouts, the Amaya name, attribution and license. Uses AppCompat application locales with no dependency upgrades or custom translation framework.
+
+**Coverage:** home/navigation; chat composer and common actions; projects, workspace browsing and references; agent groups/configuration; models, providers and API setup; common settings, language/theme, update UI, terminal policy and accessibility labels. Machine identifiers, URLs, commands, protocol fields and system prompts are unchanged.
+
+**Language:** Settings → Appearance → Language → Follow system / 简体中文 / English. Selection persists on Android 12 and earlier and integrates with platform app locales on Android 13+. Chinese names and content survive language changes and restart.
+
+**Core-flow fixes included:**
+- File-picker results now update composer attachment state. PNG/JPEG photos selected through Add file use ContentResolver and the existing image-message path, with bounded decoding and visible read errors.
+- Long-press a local/project conversation to rename it. Empty titles are rejected; conversation ID, ownership and messages are preserved. Manual titles are protected from automatic title generation.
+- Chinese reference filenames preserve Unicode letters, marks and numbers. A separate commit fixes the pre-existing API-26 version-accessor lint error using PackageInfoCompat.getLongVersionCode.
+- When an image is rejected by a model without image support, retain the attachment and typed text.
+
+### Validation
+- [Unmodified upstream baseline](https://github.com/chenchangxiang-330/amaya/actions/runs/42946659016), source fbc1f1e79744bacc60ad5ba5ba51d08570c66521: debug build and unit tests passed; lint exposed the existing version-accessor issue fixed above.
+- [Final cloud validation](https://github.com/chenchangxiang-330/amaya/actions/runs/42995857240), source 622d601fc749fe75d2e84919a4800cc2c77a7d67: assembleDebug, testDebugUnitTest, lintDebug and all 483 resource/placeholder/fallback checks passed. JDK 17, Gradle 8.14.3, compile SDK 36.
+- Android 11/API 30 and Android 13/API 33 x86_64 emulators each passed nine UI phases: core Chinese flows, PNG/JPEG/text attachment selection/removal/reselection and image persistence, rename/cancel/blank-name handling, restart persistence, English/Chinese/system switching, English fallback and larger-font language dialogs. Saved conversation IDs and messages were compared across renaming and restart.
+- [79 actual screenshots, result files and full report](https://github.com/chenchangxiang-330/amaya/tree/codex/localization-evidence/validation/evidence/622d601fc749fe75d2e84919a4800cc2c77a7d67).
+- [ARM64 test APK](https://github.com/chenchangxiang-330/amaya/actions/runs/42995857240/artifacts/13844127112): 1.0.3-fix/code 4, Android debug certificate, parallel-install ID com.amaya.intelligence.debug.fix. It has separate data from previous installs. Emulator and phone APKs use the same source/debug configuration with different ABIs and test signing identities. Workflows, package/signing overrides, UI fixtures and evidence remain outside this PR.
+
+### Limits
+No live API credentials or simulated successful model responses were used. Tests validate configuration, client attachment handling, persistence and unavailable-service behavior; real model receipt, vision responses and dependent end-to-end flows remain unverified. The non-vision-model draft-restoration branch was statically reviewed but not separately exercised by the UI suite. Physical ARM64 devices, every image format/orientation and full accessibility coverage were not tested. System picker text belongs to Android; low-level/provider error details and deferred remote/bridge surfaces may remain English. Long chat titles retain the existing fade/truncation behavior.
+
+![Photo selected through Add file](https://raw.githubusercontent.com/chenchangxiang-330/amaya/c12ac144265cd19134a903c2ca794f4f5a2d97f2/validation/evidence/622d601fc749fe75d2e84919a4800cc2c77a7d67/api-33/photo-picked-through-add-file.png)
+![Rename project conversation](https://raw.githubusercontent.com/chenchangxiang-330/amaya/c12ac144265cd19134a903c2ca794f4f5a2d97f2/validation/evidence/622d601fc749fe75d2e84919a4800cc2c77a7d67/api-33/rename-project-conversation-dialog.png)

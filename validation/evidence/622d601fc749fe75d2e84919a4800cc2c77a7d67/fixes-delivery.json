@@ -13,7 +13,7 @@
   "user_confirmed": "Photos can be selected, but no attachment/preview appears after returning",
   "pending_fixture_changes": null,
   "previous_installed_apk_certificate_sha256": "ced875e71d2618d0e80c507e11c29c7bf6dc9e2918bbcd091b8aeafdc59b9415",
-  "pr10_unmodified": true,
+  "pr10_unmodified": false,
   "pr10_body_still_truncated": true,
   "initial_build_result": "ARM64 build, unit tests and lint passed in 42988198787; API30 screenshots confirm photo/file chips and image message display. UI suite failed due test database filename mismatch; API33 earlier form readiness race. Both fixtures fixed.",
   "workflow_sha": "ffaf854ce2ba4ad49482782034b6ff00bfed8ace",
@@ -62,7 +62,16 @@
     "Physical ARM64 phone, all image formats/orientations, full accessibility",
     "Non-vision-model draft restoration branch was statically reviewed but not separately exercised by UI tests"
   ],
-  "remaining_blocker": "PR #10 body remains truncated; GitHub integration lacks upstream PR edit permission. Full text and minimal manual edit steps are in the report.",
+  "remaining_blocker": "PR code updated successfully. User must replace the truncated body via GitHub web Edit using pull-request-body-updated.txt because the GitHub integration cannot edit the upstream PR body.",
   "pr10_state": "open",
-  "pr10_draft": false
+  "pr10_draft": false,
+  "pr10_head_sha": "622d601fc749fe75d2e84919a4800cc2c77a7d67",
+  "pr10_commits": 8,
+  "pr10_changed_files": 67,
+  "pr10_code_update": "Fast-forwarded Fork codex/simplified-chinese from ba4fbc0 to 622d601; both fixes are now included in upstream PR #10",
+  "pr10_updated_at": "2026-11-11T10:43:38.064311+00:00",
+  "pr10_body_update_result": "403 Resource not accessible by integration",
+  "prepared_pr10_body_characters": 4377,
+  "prepared_pr10_body_url": "https://github.com/chenchangxiang-330/amaya/blob/codex/localization-evidence/validation/evidence/622d601fc749fe75d2e84919a4800cc2c77a7d67/pull-request-body-updated.txt",
+  "upstream_pr_workflow_runs_for_head": 0
 }

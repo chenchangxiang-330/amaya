@@ -40,7 +40,7 @@ APK 校验值：SHA-256 c85468eaad414d8317db0eb387316d793d79d18d34e3a7f6ec2d2815
 未进行实体 ARM64 手机、所有图片格式/方向或完整无障碍检查。不支持图片模型下的草稿恢复逻辑经过静态复核，本次运行套件未单独触发该分支。Android 11/API 30 和 Android 13/API 33 的最终实际结果以 Actions 和截图记录为准。
 实际截图显示：重命名弹窗的中文输入及取消/保存按钮完整可见；长对话标题在聊天顶部沿用原有淡出截断样式，完整名称可在侧栏及重命名框查看。系统文件选择器由 Android 提供，文案跟随系统语言；底层模型错误详情仍可能为英文。
 所有开发、构建、模拟器、APK 与截图都保存在云端，没有自动下载至用户 Mac。
-本次修复独立于上游 PR #10，未合并 PR、修改上游 main 或创建额外 Issue。
+本次修复已追加到上游 PR #10，未合并 PR、修改上游 main 或创建额外 Issue。
 
 维护与重建
 在云端仓库 git fetch upstream，切换 codex/photo-attachments-and-project-renaming，再合并 upstream/main；解决冲突后同步维护 values 与 values-zh-rCN 的资源键和参数。
@@ -50,10 +50,10 @@ APK 校验值：SHA-256 c85468eaad414d8317db0eb387316d793d79d18d34e3a7f6ec2d2815
 原中文化任务记录
 上游未经修改的构建基线：fbc1f1e79744bacc60ad5ba5ba51d08570c66521，https://github.com/chenchangxiang-330/amaya/actions/runs/42946659016 。构建与单元测试通过，lint 发现的既有 API 兼容问题已在中文化分支单独修复。
 中文化基线最终构建与运行：https://github.com/chenchangxiang-330/amaya/actions/runs/42956973326 。中文化源码为 ba4fbc02b344649569a0faeb12a71e51bb53f46d。
-上游 PR #10：https://github.com/nazrielnr/amaya/pull/10 ，普通 Open PR，未合并。此次功能修复位于独立分支，没有修改该 PR 的源码或扩大其范围。
+上游 PR #10：https://github.com/nazrielnr/amaya/pull/10 ，普通 Open PR，未合并。此次功能修复已通过快进 Fork 的 codex/simplified-chinese 分支追加到该 PR；PR 当前有 8 个提交，head 为 622d601fc749fe75d2e84919a4800cc2c77a7d67。工作流、测试包名/签名覆盖和证据仍不在 PR 内。
 此前完整中文化验证报告：https://github.com/chenchangxiang-330/amaya/blob/5e3c30f0429c82878a7daf1bca4bb583e4ed9a4b/validation/evidence/ba4fbc02b344649569a0faeb12a71e51bb53f46d/verification-report.txt
 仍存在的 PR 文案阻塞：再次读取发现正文为 2964 字符，在 Emulator APKs 处截断。GitHub 连接器此前编辑上游 PR 返回 403 Resource not accessible by integration。最小处理步骤：在 GitHub 的 PR 正文右上角菜单选择 Edit，替换为下方文件的 Raw 全文，再保存；不需要提供令牌。
-完整英文正文：https://github.com/chenchangxiang-330/amaya/blob/5e3c30f0429c82878a7daf1bca4bb583e4ed9a4b/validation/evidence/ba4fbc02b344649569a0faeb12a71e51bb53f46d/pull-request-body.txt
+最新完整英文正文（已包含两个功能修复及最终验证）：https://github.com/chenchangxiang-330/amaya/blob/codex/localization-evidence/validation/evidence/622d601fc749fe75d2e84919a4800cc2c77a7d67/pull-request-body-updated.txt
 
 下载与截图入口
 需登录 GitHub 下载 Artifact ZIP，再解压安装 APK；Artifacts 保留至 2026-12-11 UTC。
