@@ -1,0 +1,22 @@
+Phone build and checks: PASS
+Source: 622d601fc749fe75d2e84919a4800cc2c77a7d67
+Workflow: ffaf854ce2ba4ad49482782034b6ff00bfed8ace (fork-only)
+Run: https://github.com/chenchangxiang-330/amaya/actions/runs/42995857240
+Job: https://github.com/chenchangxiang-330/amaya/actions/runs/42995857240/job/130439660877
+Commands:
+  python3 harness/validation/check_resources.py
+  gradle -I harness/validation/test-package.init.gradle :app:assembleDebug --stacktrace --console=plain
+  gradle -I harness/validation/test-package.init.gradle :app:testDebugUnitTest :app:lintDebug --continue --stacktrace --console=plain
+Results: 483 EN/ZH resources and placeholders checked; Android build, unit tests and lint passed.
+No source/dependency version changes between phone and emulator checks.
+Configuration: JDK 17 / Gradle 8.14.3 / compileSdk 36 / minSdk 26 / targetSdk 34.
+Phone: arm64-v8a, debug, versionName 1.0.3-fix, versionCode 4.
+Fork-only application ID: com.amaya.intelligence.debug.fix; label: Amaya 修复测试.
+APK: https://github.com/chenchangxiang-330/amaya/actions/runs/42995857240/artifacts/13844127112
+Checks/logs: https://github.com/chenchangxiang-330/amaya/actions/runs/42995857240/artifacts/13843958553
+Artifact expiry: 2026-12-11 UTC; GitHub sign-in required for downloads.
+APK SHA-256: c85468eaad414d8317db0eb387316d793d79d18d34e3a7f6ec2d281583438aa5
+Android Debug certificate SHA-256: 73ebbf39268d08f7a67ca0be0f221be4557f7e514204edb05e321e2598a4d17f
+Not an official release signature. Explicit test-only key saved to Actions cache amaya-debug-signing-v2; no keystore is in source or artifacts. Cache restore and identical certificate were verified in this build; eviction can still require a new signer.
+The independent test package can coexist with the older differently signed APK. Its data is separate, with no automatic migration; do not uninstall the old app to install this package.
+Runtime verification is reported separately and must not be inferred from this successful build.
