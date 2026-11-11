@@ -1,0 +1,5 @@
+PASS
+Loopback HTTP fixture only; no real provider or successful model response.
+Legacy cached false repaired by provider-settings refresh; user configuration retained.
+model=deepseek-flash image_mime=image/jpeg image_bytes=5117
+Chat endpoint intentionally returns HTTP 400.
