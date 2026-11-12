@@ -6,5 +6,8 @@
   "phone_abi": "arm64-v8a",
   "application_id": "com.amaya.intelligence.debug.fix",
   "live_model_response_tested": false,
-  "ui_scope": "inline-html-preview"
+  "ui_scope": "inline-html-preview",
+  "build_run": "https://github.com/chenchangxiang-330/amaya/actions/runs/43159619972",
+  "api30_run": "https://github.com/chenchangxiang-330/amaya/actions/runs/43159619972",
+  "api33_run": "https://github.com/chenchangxiang-330/amaya/actions/runs/43160425372"
 }
