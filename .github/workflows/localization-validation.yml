@@ -6,8 +6,8 @@ on:
 permissions:
   contents: read
 env:
-  SOURCE_SHA: f7607658b6970d4a9bba662fb45ea7782c13a4fe
-  AMAYA_HTML_ONLY: true
+  SOURCE_SHA: fc232080b61ba9c2a40b6b0e5e33d5b8bf5fbf6c
+  AMAYA_HTML_ONLY: "true"
   AMAYA_VALIDATION_PACKAGE: com.amaya.intelligence.debug.fix
   AMAYA_CAPABILITY_ONLY: ${{ contains(github.event.head_commit.message, '[capability-only]') }}
 jobs:

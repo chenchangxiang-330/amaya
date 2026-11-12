@@ -37,7 +37,7 @@ class HtmlPreviewSmokeTest {
     }
     @Test fun htmlWorksInsideChatCard() = recorded("inline-html") {
         val root = File(context.filesDir, "html-preview-test").apply { mkdirs() }
-        File(root,"styles.css").writeText("body{font:18px sans-serif;padding:12px;background:#e8f5e9}button{padding:12px}")
+        File(root,"styles.css").writeText("body{font:16px sans-serif;padding:8px;background:#e8f5e9}h2,p{margin:4px 0}button{padding:8px}")
         File(root,"data.json").writeText("{\"text\":\"同目录数据已读取\"}")
         File(context.filesDir,"outside.json").writeText("{\"secret\":\"must not be served\"}")
         File(root,"script.js").writeText("""

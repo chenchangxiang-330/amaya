@@ -11,7 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.amaya.intelligence.domain.models.ToolExecution
 import com.amaya.intelligence.domain.models.ToolStatus
-import com.amaya.intelligence.ui.components.shared.ToolCallCard
+import com.amaya.intelligence.ui.components.shared.MessageBubble
+import com.amaya.intelligence.domain.models.UiMessage
+import com.amaya.intelligence.domain.models.MessageStep
+import com.amaya.intelligence.data.remote.api.MessageRole
 import com.amaya.intelligence.ui.theme.AmayaTheme
 import java.io.File
 
@@ -24,8 +27,11 @@ class HtmlPreviewHarnessActivity : AppCompatActivity() {
             AmayaTheme {
                 Column(Modifier.fillMaxSize().padding(top = 40.dp).verticalScroll(rememberScrollState())) {
                     Text("HTML preview UI fixture · no live model")
-                    ToolCallCard(execution = ToolExecution("html-fixture", "write_file", mapOf("path" to "中文网页.html"),
+                    val tool = ToolExecution("html-fixture", "write_file", mapOf("path" to "中文网页.html"),
                         "Successfully written to: ${file.path} (123 chars)", ToolStatus.SUCCESS,
+                        metadata = mapOf("source" to "local"))
+                    MessageBubble(message = UiMessage(role = MessageRole.ASSISTANT, content = "网页已生成。",
+                        toolExecutions = listOf(tool, tool.copy(toolCallId = "duplicate-history")),
                         metadata = mapOf("source" to "local")))
                 }
             }
