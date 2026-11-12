@@ -26,14 +26,22 @@ adb logcat -v threadtime > validation/runtime/logcat.txt &
 logcat_pid=$!
 (while :; do collect_evidence 2>/dev/null || true; sleep 8; done) &
 collector_pid=$!
+amaya_test_class="com.amaya.intelligence.localization.LocalizationSmokeTest"
 run_test() {
   timeout 20s adb shell am force-stop ${amaya_test_package}
-  timeout 300s adb shell am instrument -w -e class "com.amaya.intelligence.localization.LocalizationSmokeTest#$1" \
+  timeout 300s adb shell am instrument -w -e class "${amaya_test_class}#$1" \
     ${amaya_test_package}.test/androidx.test.runner.AndroidJUnitRunner | tee "validation/runtime/$1.log"
   if ! grep -q 'OK (1 test)' "validation/runtime/$1.log"; then
     return 1
   fi
 }
+if [ "${AMAYA_HTML_ONLY:-false}" = "true" ]; then
+  amaya_test_class="com.amaya.intelligence.localization.HtmlPreviewSmokeTest"
+  run_test htmlWorksInsideChatCard
+  run_test htmlReopensAfterRestartAndUsesEnglishLabels
+  collect_evidence
+  exit 0
+fi
 run_test chineseCoreFlow
 amaya_tests_failed=0
 run_test pickedPhotosAndFilesAreVisible || amaya_tests_failed=1

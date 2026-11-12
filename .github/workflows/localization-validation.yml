@@ -6,7 +6,8 @@ on:
 permissions:
   contents: read
 env:
-  SOURCE_SHA: 5120dc401fa0077a3eb358125c920f55f1fe36c8
+  SOURCE_SHA: f7607658b6970d4a9bba662fb45ea7782c13a4fe
+  AMAYA_HTML_ONLY: true
   AMAYA_VALIDATION_PACKAGE: com.amaya.intelligence.debug.fix
   AMAYA_CAPABILITY_ONLY: ${{ contains(github.event.head_commit.message, '[capability-only]') }}
 jobs:
@@ -114,6 +115,11 @@ jobs:
           mkdir -p app/src/androidTest/java/com/amaya/intelligence/localization validation
           cp harness/validation/LocalizationSmokeTest.kt app/src/androidTest/java/com/amaya/intelligence/localization/
           cp harness/validation/run-emulator-checks.sh validation/
+          if [ "$AMAYA_HTML_ONLY" = "true" ]; then
+            mkdir -p app/src/debug/java/com/amaya/intelligence/localization
+            cp harness/validation/HtmlPreviewHarnessActivity.kt app/src/debug/java/com/amaya/intelligence/localization/
+            cp harness/validation/HtmlPreviewSmokeTest.kt app/src/androidTest/java/com/amaya/intelligence/localization/
+          fi
           git rev-parse HEAD | tee validation/source-sha.txt
           test -e /dev/kvm
           sudo chmod 666 /dev/kvm
@@ -183,7 +189,7 @@ jobs:
                   if source.is_file() and (source.suffix in ('.png', '.xml') or source.name.endswith('-result.txt') or source.name == 'host-memory-events.txt'):
                       shutil.copy2(source, target / source.name)
           dest.mkdir(parents=True, exist_ok=True)
-          (dest / 'source.json').write_text(json.dumps({'source_sha': os.environ['SOURCE_SHA'], 'run': os.environ['RUN_URL'], 'variant': 'debug', 'emulator_abi': 'x86_64', 'phone_abi': 'arm64-v8a', 'application_id': os.environ['AMAYA_VALIDATION_PACKAGE'], 'live_model_response_tested': False, 'ui_scope': 'core/photo/rename/restart/image-capability' if os.environ['AMAYA_CAPABILITY_ONLY'] == 'true' else 'full-localization-and-capability'}, indent=2))
+          (dest / 'source.json').write_text(json.dumps({'source_sha': os.environ['SOURCE_SHA'], 'run': os.environ['RUN_URL'], 'variant': 'debug', 'emulator_abi': 'x86_64', 'phone_abi': 'arm64-v8a', 'application_id': os.environ['AMAYA_VALIDATION_PACKAGE'], 'live_model_response_tested': False, 'ui_scope': 'inline-html-preview' if os.environ.get('AMAYA_HTML_ONLY') == 'true' else 'core/photo/rename/restart/image-capability' if os.environ['AMAYA_CAPABILITY_ONLY'] == 'true' else 'full-localization-and-capability'}, indent=2))
           PY
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

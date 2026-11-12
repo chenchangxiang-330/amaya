@@ -119,3 +119,5 @@ amaya/
 - Phone validation uses an explicit `AMAYA_DEBUG_KEYSTORE` path cached by Actions; cache eviction can still require a new test signing identity. A workflow push marked `[apk-only]` rebuilds phone checks without repeating unchanged emulator checks or overwriting their evidence. `[ui-only]` reruns emulator checks against the pinned source without rebuilding the unchanged phone APK.
 
 - A `[capability-only]` UI validation run executes core setup, photo selection, rename, restart and the image-capability request regression; language/system/fallback phases must be cited separately from an earlier full run of the same application source.
+
+- HTML preview validation uses a debug-only host of the production tool card, synthetic generated files, and HtmlPreviewSmokeTest. AMAYA_HTML_ONLY selects this bounded runtime suite; the host/manifest/test never enter the phone APK or application PR.

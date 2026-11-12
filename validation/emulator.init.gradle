@@ -2,6 +2,9 @@
 gradle.beforeProject { project ->
     project.plugins.withId('com.android.application') {
         project.androidComponents.finalizeDsl { android ->
+            if (System.getenv('AMAYA_HTML_ONLY') == 'true') {
+                android.sourceSets.getByName('debug').manifest.srcFile(project.rootProject.file('harness/validation/html-test-manifest.xml'))
+            }
             android.splits.abi.reset()
             android.splits.abi.include('x86_64')
         }
