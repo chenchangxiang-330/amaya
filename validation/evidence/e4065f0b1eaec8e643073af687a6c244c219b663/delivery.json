@@ -1,0 +1,44 @@
+{
+  "source": "e4065f0b1eaec8e643073af687a6c244c219b663",
+  "branch": "codex/project-workspace-and-reference-viewing",
+  "baseline": "aa3e32a9db3e3e0ef004567c474b5ab91b34e1ef",
+  "run": 43165097678,
+  "harness": "8c584a2f33cf3af87f6a5721f02557d84b2ba550",
+  "state": "Completed: final cloud build, JVM/lint, 500 resources, API30/33 runtime and screenshot review passed; final APK available",
+  "findings": [
+    "Workspace onClick was empty",
+    "Reference row click opened removal confirmation",
+    "Project metadata needed refresh after returning from reference edits"
+  ],
+  "upstream_pr_created": false,
+  "apk_artifact": 13919727703,
+  "apk_sha256": "aa75a6ecaa63b63b63fb0013756c64afc381f6ff6fb1ed1472c7b8f0ba4d74c4",
+  "signer_sha256": "73ebbf39268d08f7a67ca0be0f221be4557f7e514204edb05e321e2598a4d17f",
+  "first_verified_run": 43163624614,
+  "first_verified_source": "b8792a000d0f1d7ccb8735d5b49e03c2661a4963",
+  "runtime": {
+    "api30": "3/3 passed",
+    "api33": "3/3 passed"
+  },
+  "screenshots": 74,
+  "run_url": "https://github.com/chenchangxiang-330/amaya/actions/runs/43165097678",
+  "apk_url": "https://github.com/chenchangxiang-330/amaya/actions/runs/43165097678/artifacts/13919727703",
+  "version": "1.0.3-fix",
+  "version_code": 4,
+  "min_sdk": 26,
+  "package": "com.amaya.intelligence.debug.fix",
+  "signing": "Fork-only debug/test key",
+  "source_variant": "debug",
+  "phone_abi": "arm64-v8a",
+  "emulator_abi": "x86_64",
+  "live_model_response_tested": false,
+  "external_viewer_tested": false,
+  "physical_phone_tested": false,
+  "artifacts_expire_at": "2026-12-12T06:07:25Z",
+  "jobs": {
+    "build_unit_lint": 131005019380,
+    "api30": 131005019490,
+    "api33": 131005019500,
+    "evidence": 131009141764
+  }
+}

@@ -1,0 +1,59 @@
+Project workspace and reference viewing — cloud validation
+
+Source: e4065f0b1eaec8e643073af687a6c244c219b663
+Branch: https://github.com/chenchangxiang-330/amaya/tree/codex/project-workspace-and-reference-viewing
+Baseline: aa3e32a9db3e3e0ef004567c474b5ab91b34e1ef, the previously delivered and validated inline-HTML build.
+Baseline build/JVM/lint and API 30: https://github.com/chenchangxiang-330/amaya/actions/runs/43159619972
+Baseline API 33: https://github.com/chenchangxiang-330/amaya/actions/runs/43160425372
+
+Environment
+Verified /workspace/amaya, Linux 6.18.57 x86_64, with the managed environment reporting provider=cloud, connected and running. Development and Git operations stayed in /workspace. SDK, Gradle caches, builds and Android emulators ran on GitHub-hosted Ubuntu. Nothing was installed, cloned, built or automatically downloaded on the user's Mac.
+
+Root causes and implementation
+The project Workspace row called an empty click handler. It now launches the existing file browser at the saved workspace path in a browsing mode. The folder-selection action remains reserved for project creation/selection. Browsing does not update a project's root path. Folder navigation and Back return through browsing history. Missing/unreadable folders show a localized error and Retry; permission changes trigger a reload.
+Reference rows previously opened removal confirmation on every tap. A row now opens the reference content, while its separate named remove button retains confirmation. This shared list also serves agent/group references; runtime coverage in this task focuses on projects.
+LocalFileViewerActivity provides a read-only text viewer with selection, offline HTML using the existing HtmlPreviewCard, and images via the existing Coil dependency. Other formats provide an explicit Open with another app action using the existing FileProvider and a temporary read grant. No provider roots or dependencies were added.
+LocalFilePreview bounds text reads to 200,000 characters and reports truncation without altering the source. It handles UTF-8 and BOM-marked UTF-16, and keeps unsupported binary types out of the text renderer. Missing/unreadable files show an error. Project detail reloads its record on resume before enabling edits so a later name/instructions save retains references added in another Activity.
+Visual review of the first fully passing run (43163624614, source b8792a000d0f1d7ccb8735d5b49e03c2661a4963) found that the settings-style top scrim faded the first text line and image edge. The final viewer uses a fixed Material app bar and a separate scrollable content viewport. Runtime checks now sample the image color to catch this regression.
+No database schema, model/provider protocol, agent engine or workspace assignment was changed. Ten new English/Chinese resources were added. The source branch is separate from the Fork validation/evidence branches and no new upstream PR was created by this task.
+
+Build and static verification
+Run: https://github.com/chenchangxiang-330/amaya/actions/runs/43165097678
+JDK 17; Gradle 8.14.3; compile SDK 36; target SDK 34; min SDK 26; debug variant.
+Commands:
+  python3 harness/validation/check_resources.py
+  gradle -I harness/validation/test-package.init.gradle :app:assembleDebug --stacktrace --console=plain
+  gradle -I harness/validation/test-package.init.gradle :app:testDebugUnitTest :app:lintDebug --continue --stacktrace --console=plain
+CRLF-aware git diff --check and all 500 resource keys/placeholders/plural branches/English fallback checks passed in the cloud terminal.
+JVM tests add Unicode and UTF-16 content checks, unchanged file bytes, text-size bounds, unsupported binary handling, missing/directory paths, and HTML-versus-reference classification.
+PASS: final ARM64 debug build, JVM tests, lint and resource checks. Build/JVM/lint job 131005019380 completed successfully. Selected actual runner log lines are in build-check-summary.txt; full logs and test/lint reports are attached to the run as localization-checks (artifact 13919588254).
+
+Runtime verification
+API 30 and API 33 Google APIs x86_64 cloud emulators use the same source commit/debug variant as the ARM64 phone APK. These tests use production Activities and real project/reference persistence. Project and file contents are synthetic test data. Database assertions are read-only; failure fixtures temporarily move a synthetic workspace or remove/restore a synthetic reference file.
+The core setup creates a Chinese project/reference through the real UI, an agent group and an offline model configuration. The new phases check workspace entry, text and nested files, Back navigation, an interactive local HTML page, image preview, unsupported-type fallback, reference content viewing, cancellation/removal through the separate button, retention of added references across a project-name save, missing-file/folder errors and Retry, unchanged file content/root path, restart persistence and English UI with Chinese user content preserved.
+Commands:
+  gradle -I harness/validation/test-package.init.gradle -I harness/validation/emulator.init.gradle :app:assembleDebug :app:assembleDebugAndroidTest --no-daemon -Pkotlin.compiler.execution.strategy=in-process --no-configuration-cache --stacktrace --console=plain
+  bash validation/run-emulator-checks.sh
+PASS: Android 11/API 30 job 131005019490 and Android 13/API 33 job 131005019500 each passed all three phases (core flow, workspace/reference viewing, restart/English). All six result files start with PASS. The final image pixel assertion also passed on both APIs.
+The evidence job 131009141764 published 74 actual emulator screenshots, UI hierarchies and result files under api-30/ and api-33/. Final screenshots directly inspected after the layout correction: API 30 project-reference-read-only-viewer.png, API 33 workspace-image-viewer.png, and API 33 reference-viewer-english-chinese-content.png. The text starts below the app bar without fading; the image upper edge retains the solid blue fixture color; the English external-open button fits and Chinese reference content remains unchanged. These observations are runtime screenshot review, separate from static resource/build checks.
+
+Delivery
+Version 1.0.3-fix (code 4), package com.amaya.intelligence.debug.fix, label Amaya 修复测试, ARM64, Android 8.0+.
+The Fork-only workflow supplies debug/test signing; no original-author release key is used. A package can update an earlier installation only when its package ID and signer match. Keep the existing installation/data rather than uninstalling first. Other package IDs remain separate.
+APK artifact: https://github.com/chenchangxiang-330/amaya/actions/runs/43165097678/artifacts/13919727703
+Artifact name: amaya-1.0.3-fix-side-by-side-arm64-v8a
+ZIP member: app-arm64-v8a-debug.apk
+Artifact expires: 2026-12-12T06:07:25Z; GitHub login is required to download it.
+APK SHA-256: aa75a6ecaa63b63b63fb0013756c64afc381f6ff6fb1ed1472c7b8f0ba4d74c4
+Signer SHA-256: 73ebbf39268d08f7a67ca0be0f221be4557f7e514204edb05e321e2598a4d17f
+Validation harness commit: 8c584a2f33cf3af87f6a5721f02557d84b2ba550
+The source commit is identical for the ARM64 delivery and x86_64 emulator builds; Fork-only package/ABI/signing overlays are outside the application source branch.
+
+Limits / not verified
+No real model response or API credentials were used. Offline-provider failure in the setup is expected, not a successful AI response.
+Native text preview supports UTF-8 and BOM-marked UTF-16; other encodings can be opened in a supporting external application. Large text is intentionally truncated in the viewer. The viewer is read-only; reference editing was not added.
+PDF/Office/other unsupported formats rely on an installed external viewer; the presence and behavior of such third-party applications were not validated. HTML keeps the previous offline-preview restrictions: no CDN, external API or backend server. No real-user files or the user's physical phone were accessed.
+Permission-denial behavior, large-font rendering, screen-reader operation and agent/group reference routes were not newly runtime-tested. Existing photos, model capability and conversation rename fixes are inherited from the baseline; this task does not claim a fresh complete regression run for them.
+
+Maintenance
+Keep source on codex/project-workspace-and-reference-viewing; workflows/test signing on codex/localization-validation; screenshots/reports on codex/localization-evidence. Sync/review upstream before preparing a standalone PR. Update SOURCE_SHA and use AMAYA_PROJECT_FILES_ONLY for this suite; set other suite flags as appropriate. Run normal validation for ARM64/JVM/lint and both API 30/33 checks. Maintain both English and Simplified Chinese resource files for new labels. See the immutable source and CI links above for commands and actual tested commits.
