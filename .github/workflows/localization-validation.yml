@@ -6,8 +6,9 @@ on:
 permissions:
   contents: read
 env:
-  SOURCE_SHA: aa3e32a9db3e3e0ef004567c474b5ab91b34e1ef
-  AMAYA_HTML_ONLY: "true"
+  SOURCE_SHA: b8792a000d0f1d7ccb8735d5b49e03c2661a4963
+  AMAYA_HTML_ONLY: "false"
+  AMAYA_PROJECT_FILES_ONLY: "true"
   AMAYA_VALIDATION_PACKAGE: com.amaya.intelligence.debug.fix
   AMAYA_CAPABILITY_ONLY: ${{ contains(github.event.head_commit.message, '[capability-only]') }}
 jobs:
@@ -189,7 +190,7 @@ jobs:
                   if source.is_file() and (source.suffix in ('.png', '.xml') or source.name.endswith('-result.txt') or source.name == 'host-memory-events.txt'):
                       shutil.copy2(source, target / source.name)
           dest.mkdir(parents=True, exist_ok=True)
-          (dest / 'source.json').write_text(json.dumps({'source_sha': os.environ['SOURCE_SHA'], 'run': os.environ['RUN_URL'], 'variant': 'debug', 'emulator_abi': 'x86_64', 'phone_abi': 'arm64-v8a', 'application_id': os.environ['AMAYA_VALIDATION_PACKAGE'], 'live_model_response_tested': False, 'ui_scope': 'inline-html-preview' if os.environ.get('AMAYA_HTML_ONLY') == 'true' else 'core/photo/rename/restart/image-capability' if os.environ['AMAYA_CAPABILITY_ONLY'] == 'true' else 'full-localization-and-capability'}, indent=2))
+          (dest / 'source.json').write_text(json.dumps({'source_sha': os.environ['SOURCE_SHA'], 'run': os.environ['RUN_URL'], 'variant': 'debug', 'emulator_abi': 'x86_64', 'phone_abi': 'arm64-v8a', 'application_id': os.environ['AMAYA_VALIDATION_PACKAGE'], 'live_model_response_tested': False, 'ui_scope': 'project-workspace-and-reference-viewing' if os.environ.get('AMAYA_PROJECT_FILES_ONLY') == 'true' else 'inline-html-preview' if os.environ.get('AMAYA_HTML_ONLY') == 'true' else 'core/photo/rename/restart/image-capability' if os.environ['AMAYA_CAPABILITY_ONLY'] == 'true' else 'full-localization-and-capability'}, indent=2))
           PY
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'

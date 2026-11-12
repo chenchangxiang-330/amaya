@@ -121,3 +121,5 @@ amaya/
 - A `[capability-only]` UI validation run executes core setup, photo selection, rename, restart and the image-capability request regression; language/system/fallback phases must be cited separately from an earlier full run of the same application source.
 
 - HTML preview validation uses a debug-only host of the production tool card, synthetic generated files, and HtmlPreviewSmokeTest. AMAYA_HTML_ONLY selects this bounded runtime suite; the host/manifest/test never enter the phone APK or application PR.
+
+- AMAYA_PROJECT_FILES_ONLY validates actual project creation, workspace and reference viewing, separate removal, missing-file/folder errors, restart and English labels through production Activities. Files and project data are synthetic emulator fixtures; database assertions are read-only, and no real model response is used.

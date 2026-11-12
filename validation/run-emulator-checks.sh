@@ -42,6 +42,13 @@ if [ "${AMAYA_HTML_ONLY:-false}" = "true" ]; then
   collect_evidence
   exit 0
 fi
+if [ "${AMAYA_PROJECT_FILES_ONLY:-false}" = "true" ]; then
+  run_test chineseCoreFlow
+  run_test projectWorkspaceAndReferencesCanBeViewed
+  run_test projectFileViewsSurviveRestartAndEnglish
+  collect_evidence
+  exit 0
+fi
 run_test chineseCoreFlow
 amaya_tests_failed=0
 run_test pickedPhotosAndFilesAreVisible || amaya_tests_failed=1

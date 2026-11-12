@@ -321,6 +321,160 @@ class LocalizationSmokeTest {
         }
     }
 
+    private fun projectFilesRecord(): JSONObject {
+        return android.database.sqlite.SQLiteDatabase.openDatabase(context.getDatabasePath("Amaya_db").path, null,
+            android.database.sqlite.SQLiteDatabase.OPEN_READONLY).use { db ->
+            db.rawQuery("SELECT id, name, root_path, reference_paths_json FROM projects WHERE name = ?", arrayOf("中文项目")).use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                JSONObject().put("id",cursor.getLong(0)).put("name",cursor.getString(1))
+                    .put("root",cursor.getString(2)).put("references",cursor.getString(3))
+            }
+        }
+    }
+
+    private fun openProjectConfiguration() {
+        context.startActivity(Intent().setClassName(context.packageName,
+            "com.amaya.intelligence.ui.activities.project.local.LocalProjectDetailActivity")
+            .putExtra("project_id", projectFilesRecord().getLong("id"))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+        text("中文项目")
+    }
+
+    @Test fun projectWorkspaceAndReferencesCanBeViewed() = recorded("project-file-viewing") {
+        val before = projectFilesRecord()
+        val root = File(before.getString("root"))
+        val explanation = File(root,"工作区说明.txt").apply { writeText("工作区文件内容：中文与 English。\n第二行保持不变。") }
+        File(root,"子目录").mkdirs()
+        File(root,"子目录/子文件.txt").writeText("这是子目录内的文件。")
+        File(root,"工作区网页.html").writeText("""<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><h2>工作区交互网页</h2><button onclick="this.textContent='交互成功'">改变内容</button></html>""")
+        File(root,"未知格式.bin").writeBytes(byteArrayOf(0,1,2,3))
+        val picture = android.graphics.Bitmap.createBitmap(48,48,android.graphics.Bitmap.Config.ARGB_8888)
+        picture.eraseColor(android.graphics.Color.BLUE)
+        File(root,"工作区图片.png").outputStream().use { picture.compress(android.graphics.Bitmap.CompressFormat.PNG,100,it) }
+        picture.recycle()
+        openProjectConfiguration()
+        click("工作区")
+        text("工作区说明.txt")
+        assertFalse("Browsing must not reassign the project workspace",device.hasObject(By.desc("选择")))
+        capture("existing-project-workspace-browse")
+        click("工作区说明.txt")
+        find(By.textContains("工作区文件内容：中文与 English。"))
+        capture("workspace-text-viewer")
+        back()
+        click("子目录")
+        click("子文件.txt")
+        text("这是子目录内的文件。")
+        back()
+        back() // Browsing history returns to the original workspace, not the project screen.
+        click("工作区网页.html")
+        text("工作区交互网页")
+        click("改变内容")
+        text("交互成功")
+        capture("workspace-interactive-html")
+        back()
+        click("工作区图片.png")
+        find(By.desc("图片：工作区图片.png"))
+        capture("workspace-image-viewer")
+        back()
+        click("未知格式.bin")
+        text("暂不支持预览此类型的文件，可用其他应用打开。")
+        text("用其他应用打开")
+        capture("workspace-unsupported-file")
+        back()
+        back()
+        assertEquals(before.getString("root"), projectFilesRecord().getString("root"))
+        click("资料")
+        click("中文资料.txt")
+        find(By.textContains("这是一份用于本地化验证的中文项目资料。"))
+        assertFalse("Viewing a reference must not open removal confirmation",device.hasObject(label("移除资料")))
+        capture("project-reference-read-only-viewer")
+        back()
+        desc("移除 中文资料.txt")
+        capture("reference-separate-remove-confirmation")
+        click("取消")
+        assertEquals(before.getString("references"),projectFilesRecord().getString("references"))
+        desc("添加笔记")
+        fields("待移除资料", "这份资料仅用于移除验证。")
+        click("保存")
+        text("待移除资料.txt")
+        back()
+        click("项目名称")
+        fields("中文项目")
+        click("保存名称")
+        assertEquals("Saving project identity must keep newly added references",2,
+            org.json.JSONArray(projectFilesRecord().getString("references")).length())
+        click("资料")
+        click("待移除资料.txt")
+        text("这份资料仅用于移除验证。")
+        back()
+        desc("移除 待移除资料.txt")
+        click("移除")
+        assertTrue(device.wait(Until.gone(label("待移除资料.txt")),10_000))
+        text("中文资料.txt")
+        assertEquals(before.getString("references"),projectFilesRecord().getString("references"))
+        val reference = File(org.json.JSONArray(before.getString("references")).getString(0))
+        val content = reference.readBytes()
+        assertTrue(reference.delete()) // Simulate a missing imported file in the isolated emulator only.
+        try {
+            click("中文资料.txt")
+            text("文件不存在或无法读取。")
+            capture("reference-missing-file-error")
+            back()
+        } finally { reference.writeBytes(content) }
+        back()
+        val temporarilyMoved = File(root.parentFile, "Amaya-l10n-temporarily-moved")
+        assertTrue(root.renameTo(temporarilyMoved))
+        try {
+            click("工作区")
+            text("文件夹不存在或无法读取，请检查文件访问权限。")
+            capture("workspace-missing-folder-error")
+        } finally { assertTrue(temporarilyMoved.renameTo(root)) }
+        click("重试")
+        text("工作区说明.txt")
+        capture("workspace-retry-after-folder-restored")
+        assertEquals("工作区文件内容：中文与 English。\n第二行保持不变。",explanation.readText())
+        run {
+            assertTrue(content.contentEquals(reference.readBytes()))
+            File(output,"project-files-before-restart.json").writeText(projectFilesRecord().toString())
+        }
+    }
+
+    @Test fun projectFileViewsSurviveRestartAndEnglish() = recorded("project-file-viewing-restart") {
+        val before = JSONObject(File(output,"project-files-before-restart.json").readText())
+        val after = projectFilesRecord()
+        assertEquals(before.toString(),after.toString())
+        openProjectConfiguration()
+        click("工作区")
+        click("工作区说明.txt")
+        find(By.textContains("工作区文件内容：中文与 English。"))
+        capture("workspace-view-after-restart")
+        back()
+        back()
+        click("资料")
+        click("中文资料.txt")
+        find(By.textContains("第二行包含标点、数字 123 和 English"))
+        capture("reference-view-after-restart")
+        launch()
+        settings(true)
+        device.findObject(label("全局"))?.click()
+        language("English",true)
+        text("Settings")
+        openProjectConfiguration()
+        click("Workspace")
+        click("未知格式.bin")
+        text("Preview is unavailable for this file type. Open it with another app.")
+        text("Open with another app")
+        capture("workspace-viewer-english")
+        back()
+        back()
+        click("References")
+        click("中文资料.txt")
+        find(By.textContains("这是一份用于本地化验证的中文项目资料。"))
+        text("Open with another app")
+        capture("reference-viewer-english-chinese-content")
+        assertEquals(before.toString(),projectFilesRecord().toString())
+    }
+
     @Test fun pickedPhotosAndFilesAreVisible() = recorded("photo-and-file-attachments") {
         launch()
         openProjectConversation("请概括中文项目资料")
