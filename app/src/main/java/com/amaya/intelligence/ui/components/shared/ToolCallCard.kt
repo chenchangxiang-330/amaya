@@ -284,6 +284,8 @@ internal fun ToolCardContent(
                 }
             }
 
+            htmlPreviewPath(execution)?.let { HtmlPreviewCard(it) }
+
             ToolCallAnimatedSection(visible = thinkingVisible, initiallyVisible = thinkingVisible) {
                 Surface(
                     shape = RoundedCornerShape(8.dp),

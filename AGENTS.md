@@ -112,3 +112,5 @@ amaya/
 - Deferred remote/bridge work: see `docs/local/audits/VISION-HOLD.md`; focus audits on local/core paths until the product direction is explicit.
 
 - Local attachment selection and Chat/Project conversation renaming are documented in `app/AGENTS.md`; these fixes do not change provider protocols or schemas.
+
+- Local successful HTML file writes/edits expose an inline interactive preview through `HtmlPreviewCard` and `HtmlPreviewDocument` in the shared UI components. The WebView uses an isolated offline origin and serves only bounded web assets inside the HTML file’s directory; no file/content access, network, or native JS bridge. English/Chinese preview labels live in Android resources.

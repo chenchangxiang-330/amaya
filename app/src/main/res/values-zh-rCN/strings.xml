@@ -512,4 +512,11 @@
     <string name="rename_conversation">重命名对话</string>
     <string name="conversation_title">对话名称</string>
     <string name="could_not_rename_conversation">无法重命名此对话，请重试。</string>
+    <string name="html_preview_title">网页：%1$s</string>
+    <string name="html_preview_expand">展开</string>
+    <string name="html_preview_collapse">收起</string>
+    <string name="html_preview_reload">刷新网页</string>
+    <string name="html_preview_unavailable">网页文件不存在、过大或无法预览。</string>
+    <string name="html_preview_local_only">本地预览 · 不支持在线资源和服务端连接。</string>
+    <string name="html_preview_accessibility">可交互网页预览</string>
 </resources>

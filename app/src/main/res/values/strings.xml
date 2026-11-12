@@ -527,4 +527,11 @@
     <string name="rename_conversation">Rename conversation</string>
     <string name="conversation_title">Conversation name</string>
     <string name="could_not_rename_conversation">Could not rename this conversation. Try again.</string>
+    <string name="html_preview_title">Web page: %1$s</string>
+    <string name="html_preview_expand">Expand</string>
+    <string name="html_preview_collapse">Collapse</string>
+    <string name="html_preview_reload">Reload web page</string>
+    <string name="html_preview_unavailable">This web page is missing, too large, or cannot be previewed.</string>
+    <string name="html_preview_local_only">Local preview · Online resources and server connections are unavailable.</string>
+    <string name="html_preview_accessibility">Interactive web page preview</string>
 </resources>
