@@ -10,4 +10,3 @@ Selected lines from the actual GitHub-hosted runner job log (UTC timestamps):
 2026-11-12T06:07:24.4022511Z BUILD SUCCESSFUL in 3m 13s
 2026-11-12T06:07:25.6218052Z Artifact download URL: https://github.com/chenchangxiang-330/amaya/actions/runs/43165097678/artifacts/13919588254
 2026-11-12T06:07:30.4597751Z Artifact download URL: https://github.com/chenchangxiang-330/amaya/actions/runs/43165097678/artifacts/13919727703
-
