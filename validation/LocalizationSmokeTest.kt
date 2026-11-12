@@ -386,7 +386,7 @@ class LocalizationSmokeTest {
         click("资料")
         click("中文资料.txt")
         find(By.textContains("这是一份用于本地化验证的中文项目资料。"))
-        assertFalse("Viewing a reference must not open removal confirmation",device.hasObject(label("移除资料")))
+        assertFalse("Viewing a reference must not open removal confirmation",device.hasObject(label("移除资料？")))
         capture("project-reference-read-only-viewer")
         back()
         desc("移除 中文资料.txt")
