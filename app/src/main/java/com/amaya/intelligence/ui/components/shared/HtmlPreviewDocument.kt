@@ -18,13 +18,13 @@ internal class HtmlPreviewDocument private constructor(val file: File) {
     }.getOrDefault(false)
 
     fun asset(url: String): Pair<File, String>? = runCatching {
-        if (!accepts(url)) return null
+        if (!accepts(url)) return@runCatching null
         val path = URI(url).path.removePrefix("/")
-        if (path.split('/').any { it.startsWith('.') || it.contains('\\') }) return null
+        if (path.split('/').any { it.startsWith('.') || it.contains('\\') }) return@runCatching null
         val candidate = File(root, path).canonicalFile
-        if (!candidate.toPath().startsWith(root.toPath()) || !candidate.isFile) return null
-        val mime = MIME_TYPES[candidate.extension.lowercase()] ?: return null
-        if (candidate.length() > MAX_ASSET_BYTES) return null
+        if (!candidate.toPath().startsWith(root.toPath()) || !candidate.isFile) return@runCatching null
+        val mime = MIME_TYPES[candidate.extension.lowercase()] ?: return@runCatching null
+        if (candidate.length() > MAX_ASSET_BYTES) return@runCatching null
         candidate to mime
     }.getOrNull()
 
@@ -40,9 +40,9 @@ internal class HtmlPreviewDocument private constructor(val file: File) {
         )
         fun open(path: String): HtmlPreviewDocument? = runCatching {
             val file = File(path)
-            if (!file.isAbsolute || file.extension.lowercase() !in setOf("html", "htm")) return null
+            if (!file.isAbsolute || file.extension.lowercase() !in setOf("html", "htm")) return@runCatching null
             val canonical = file.canonicalFile
-            if (canonical.name.startsWith(".") || !canonical.isFile || !canonical.canRead() || canonical.length() > MAX_ASSET_BYTES) return null
+            if (canonical.name.startsWith(".") || !canonical.isFile || !canonical.canRead() || canonical.length() > MAX_ASSET_BYTES) return@runCatching null
             HtmlPreviewDocument(canonical)
         }.getOrNull()
     }

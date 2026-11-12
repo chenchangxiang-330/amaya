@@ -270,6 +270,11 @@ fun MessageBubble(
                         }
                     }
                 }
+                // Generated pages remain visible when the work summary or tool group is collapsed.
+                val htmlPaths = (message.toolExecutions + message.steps
+                    .filterIsInstance<MessageStep.ToolCall>().map { it.execution })
+                    .mapNotNull(::htmlPreviewPath).distinct()
+                htmlPaths.forEach { path -> key(path) { HtmlPreviewCard(path) } }
             }
         }
 
