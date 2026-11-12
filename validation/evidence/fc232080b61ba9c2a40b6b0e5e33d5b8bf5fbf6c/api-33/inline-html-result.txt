@@ -1,11 +1,11 @@
 FAIL: java.lang.AssertionError: Missing text: 展开
 java.lang.AssertionError: Missing text: 展开
-	at com.amaya.intelligence.localization.HtmlPreviewSmokeTest.text(HtmlPreviewSmokeTest.kt:27)
-	at com.amaya.intelligence.localization.HtmlPreviewSmokeTest.htmlWorksInsideChatCard$lambda$4(HtmlPreviewSmokeTest.kt:66)
+	at com.amaya.intelligence.localization.HtmlPreviewSmokeTest.text(HtmlPreviewSmokeTest.kt:38)
+	at com.amaya.intelligence.localization.HtmlPreviewSmokeTest.htmlWorksInsideChatCard$lambda$4(HtmlPreviewSmokeTest.kt:77)
 	at com.amaya.intelligence.localization.HtmlPreviewSmokeTest.$r8$lambda$3cRVkKeQhwjGJSkS9MDJ-Tn5S5o(Unknown Source:0)
-	at com.amaya.intelligence.localization.HtmlPreviewSmokeTest$$ExternalSyntheticLambda2.invoke(D8$$SyntheticClass:0)
-	at com.amaya.intelligence.localization.HtmlPreviewSmokeTest.recorded(HtmlPreviewSmokeTest.kt:35)
-	at com.amaya.intelligence.localization.HtmlPreviewSmokeTest.htmlWorksInsideChatCard(HtmlPreviewSmokeTest.kt:38)
+	at com.amaya.intelligence.localization.HtmlPreviewSmokeTest$$ExternalSyntheticLambda1.invoke(D8$$SyntheticClass:0)
+	at com.amaya.intelligence.localization.HtmlPreviewSmokeTest.recorded(HtmlPreviewSmokeTest.kt:46)
+	at com.amaya.intelligence.localization.HtmlPreviewSmokeTest.htmlWorksInsideChatCard(HtmlPreviewSmokeTest.kt:49)
 	at java.lang.reflect.Method.invoke(Native Method)
 	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:59)
 	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
