@@ -101,6 +101,7 @@ class LocalProjectDetailActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        loading = true
         // Reference edits happen in another Activity; keep subsequent project saves current.
         lifecycleScope.launch {
             project = projectDao.getById(projectId)
