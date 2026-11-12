@@ -47,6 +47,7 @@ fun LocalProjectDetailScreen(
     onSaveName: (String) -> Unit,
     onSaveInstructions: (String) -> Unit,
     onOpenMemory: () -> Unit,
+    onOpenWorkspace: () -> Unit,
     onAddReference: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -61,7 +62,7 @@ fun LocalProjectDetailScreen(
             AmayaDivider()
             AmayaNavigationRow(Icons.Default.Description, stringResource(R.string.instructions), project.instructions.ifBlank { stringResource(R.string.no_project_instructions) }, onClick = { instructions = project.instructions; editSheet = ProjectEditSheet.INSTRUCTIONS })
             AmayaDivider()
-            AmayaNavigationRow(Icons.Default.Folder, stringResource(R.string.workspace), project.rootPath, onClick = {})
+            AmayaNavigationRow(Icons.Default.Folder, stringResource(R.string.workspace), project.rootPath, onClick = onOpenWorkspace)
         }
         AmayaSection(stringResource(R.string.project)) {
             AmayaNavigationRow(Icons.Default.Memory, stringResource(R.string.project_memory), pluralStringResource(R.plurals.saved_memories, memoryCount, memoryCount), onOpenMemory)

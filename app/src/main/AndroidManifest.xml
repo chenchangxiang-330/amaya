@@ -225,6 +225,11 @@
             android:theme="@style/Theme.Amaya" />
 
 
+        <activity
+            android:name=".ui.activities.shared.LocalFileViewerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Amaya" />
+
         <!-- File provider for secure file sharing -->
         <provider
             android:name="androidx.core.content.FileProvider"

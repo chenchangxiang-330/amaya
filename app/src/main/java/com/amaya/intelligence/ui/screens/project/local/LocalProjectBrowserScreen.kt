@@ -4,6 +4,7 @@ import com.amaya.intelligence.R
 import androidx.compose.ui.res.stringResource
 
 import android.os.Environment
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -79,25 +80,49 @@ private fun iosProjectBrowserColors(): IosProjectBrowserColors {
 @Composable
 fun LocalProjectBrowserScreen(
     onWorkspaceSelected: (String) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    initialPath: String = Environment.getExternalStorageDirectory().absolutePath,
+    browseOnly: Boolean = false,
+    canReadStorage: Boolean = true,
+    onOpenFile: (String) -> Unit = {}
 ) {
     val colors = iosProjectBrowserColors()
-    var currentPath by remember {
-        mutableStateOf(Environment.getExternalStorageDirectory().absolutePath)
+    var currentPath by remember(initialPath) {
+        mutableStateOf(initialPath)
     }
     var files by remember { mutableStateOf<List<ProjectFileEntry>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var searchQuery by remember { mutableStateOf("") }
     var showHidden by remember { mutableStateOf(false) }
+    var loadFailed by remember { mutableStateOf(false) }
+    var reload by remember { mutableIntStateOf(0) }
+    val history = remember(initialPath) { mutableStateListOf<String>() }
+    fun navigate(path: String) {
+        if (path != currentPath) {
+            if (browseOnly) history.add(currentPath)
+            currentPath = path
+            searchQuery = ""
+        }
+    }
+    fun goBack() {
+        if (browseOnly && history.isNotEmpty()) {
+            currentPath = history.removeAt(history.lastIndex)
+            searchQuery = ""
+        } else onDismiss()
+    }
+    BackHandler(browseOnly && history.isNotEmpty()) { goBack() }
 
     val filteredFiles = remember(files, searchQuery) {
         if (searchQuery.isBlank()) files
         else files.filter { it.name.contains(searchQuery, ignoreCase = true) }
     }
 
-    LaunchedEffect(currentPath, showHidden) {
+    LaunchedEffect(currentPath, showHidden, canReadStorage, reload) {
         isLoading = true
-        files = loadLocalFiles(currentPath, showHidden)
+        val result = if (canReadStorage) loadLocalFiles(currentPath, showHidden)
+            else Result.failure(SecurityException())
+        files = result.getOrDefault(emptyList())
+        loadFailed = result.isFailure
         isLoading = false
     }
 
@@ -105,7 +130,7 @@ fun LocalProjectBrowserScreen(
         containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0.dp),
         floatingActionButton = {
-            ExtendedFloatingActionButton(
+            if (!browseOnly) ExtendedFloatingActionButton(
                 onClick = { onWorkspaceSelected(currentPath) },
                 icon = { Icon(Icons.Default.Check, stringResource(R.string.select)) },
                 text = { Text(stringResource(R.string.select_this_folder), style = MaterialTheme.typography.labelLarge) },
@@ -171,7 +196,7 @@ fun LocalProjectBrowserScreen(
 
                 BreadcrumbBar(
                     path = currentPath,
-                    onNavigate = { currentPath = it }
+                    onNavigate = { navigate(it) }
                 )
 
                 Spacer(Modifier.height(16.dp))
@@ -182,6 +207,10 @@ fun LocalProjectBrowserScreen(
                             modifier = Modifier.align(Alignment.Center),
                             color = MaterialTheme.colorScheme.primary
                         )
+                        loadFailed -> Column(Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(stringResource(R.string.folder_unavailable))
+                            TextButton(onClick = { reload++ }) { Text(stringResource(R.string.retry)) }
+                        }
                         filteredFiles.isEmpty() -> com.amaya.intelligence.ui.components.shared.SettingsEmptyState(
                             title = if (searchQuery.isNotEmpty()) stringResource(R.string.no_files_match_your_search) else stringResource(R.string.this_folder_is_empty),
                             subtitle = "",
@@ -204,9 +233,9 @@ fun LocalProjectBrowserScreen(
                                         ),
                                         onClick = { selected ->
                                             if (selected.name == "..") {
-                                                currentPath = Paths.get(currentPath).parent?.toString() ?: "/"
+                                                navigate(Paths.get(currentPath).parent?.toString() ?: "/")
                                             } else {
-                                                currentPath = selected.path
+                                                navigate(selected.path)
                                             }
                                             searchQuery = ""
                                         },
@@ -225,9 +254,9 @@ fun LocalProjectBrowserScreen(
                                     item = item,
                                     onClick = { selected ->
                                         if (selected.type == "directory") {
-                                            currentPath = selected.path
+                                            navigate(selected.path)
                                             searchQuery = ""
-                                        }
+                                        } else if (browseOnly) onOpenFile(selected.path)
                                     },
                                     isFirst = isFirst,
                                     isLast = isLast
@@ -251,7 +280,7 @@ fun LocalProjectBrowserScreen(
                     )
                 },
                 navigationIcon = {
-                    SettingsBackButton(onClick = onDismiss)
+                    SettingsBackButton(onClick = { goBack() })
                 },
                 actions = {
                     com.amaya.intelligence.ui.components.shared.AmayaTopBarButton(
@@ -272,13 +301,11 @@ fun LocalProjectBrowserScreen(
     }
 }
 
-private suspend fun loadLocalFiles(path: String, showHidden: Boolean): List<ProjectFileEntry> =
+private suspend fun loadLocalFiles(path: String, showHidden: Boolean): Result<List<ProjectFileEntry>> =
     withContext(Dispatchers.IO) {
-        try {
+        runCatching {
             val dir = Paths.get(path)
-            if (!Files.exists(dir) || !Files.isDirectory(dir)) {
-                return@withContext emptyList()
-            }
+            require(Files.isDirectory(dir) && Files.isReadable(dir))
 
             Files.list(dir).use { stream ->
                 stream
@@ -294,7 +321,5 @@ private suspend fun loadLocalFiles(path: String, showHidden: Boolean): List<Proj
                     .collect(Collectors.toList())
                     .sortedWith(compareBy({ it.type != "directory" }, { it.name.lowercase() }))
             }
-        } catch (e: Exception) {
-            emptyList()
         }
     }

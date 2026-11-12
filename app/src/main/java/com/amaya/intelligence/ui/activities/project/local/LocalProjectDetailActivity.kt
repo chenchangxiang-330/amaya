@@ -62,11 +62,6 @@ class LocalProjectDetailActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContent {
             AmayaTheme {
-                LaunchedEffect(projectId) {
-                    project = projectDao.getById(projectId)
-                    loading = false
-                    memoryCount = project?.let { memoryRepository.listMemoryRecords(MemoryType.WORKSPACE_FACT, limit = 100, workspacePath = it.rootPath).size } ?: 0
-                }
                 val currentProject = project
                 when {
                     loading -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
@@ -86,6 +81,7 @@ class LocalProjectDetailActivity : AppCompatActivity() {
                             project = updated
                             lifecycleScope.launch { projectDao.updateProject(updated) }
                         },
+                        onOpenWorkspace = { LocalProjectActivity.browseWorkspace(this, currentProject.rootPath) },
                         onOpenMemory = { LocalMemoryAreaActivity.start(this, MemoryArea.PROJECT, currentProject.rootPath) },
                         onAddReference = { LocalReferenceListActivity.start(this, "project", currentProject.id) },
                         onDelete = {
@@ -100,6 +96,16 @@ class LocalProjectDetailActivity : AppCompatActivity() {
                     )
                 }
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Reference edits happen in another Activity; keep subsequent project saves current.
+        lifecycleScope.launch {
+            project = projectDao.getById(projectId)
+            memoryCount = project?.let { memoryRepository.listMemoryRecords(MemoryType.WORKSPACE_FACT, limit = 100, workspacePath = it.rootPath).size } ?: 0
+            loading = false
         }
     }
 

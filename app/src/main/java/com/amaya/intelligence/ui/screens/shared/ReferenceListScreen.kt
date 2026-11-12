@@ -6,12 +6,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -44,6 +47,7 @@ fun ReferenceListScreen(
     onNavigateBack: () -> Unit,
     onAdd: () -> Unit,
     onAddManual: (String, String) -> Unit,
+    onOpen: (String) -> Unit,
     onDelete: (String) -> Unit
 ) {
     var manual by remember { mutableStateOf(false) }
@@ -64,7 +68,15 @@ fun ReferenceListScreen(
             } else AmayaSection(stringResource(R.string.references)) {
                 paths.forEachIndexed { index, path ->
                     if (index > 0) AmayaDivider()
-                    AmayaNavigationRow(Icons.Default.Description, File(path).name.substringAfter('_'), stringResource(R.string.tap_to_remove), onClick = { deleting = path })
+                    val displayName = File(path).name.substringAfter('_')
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        AmayaNavigationRow(Icons.Default.Description, displayName, stringResource(R.string.tap_to_view),
+                            onClick = { onOpen(path) }, modifier = Modifier.weight(1f))
+                        IconButton(onClick = { deleting = path }) {
+                            Icon(Icons.Default.Delete, stringResource(R.string.remove_named_reference, displayName),
+                                tint = MaterialTheme.colorScheme.error)
+                        }
+                    }
                 }
             }
         }

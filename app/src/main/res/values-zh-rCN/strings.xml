@@ -519,4 +519,14 @@
     <string name="html_preview_unavailable">网页文件不存在、过大或无法预览。</string>
     <string name="html_preview_local_only">本地预览 · 不支持在线资源和服务端连接。</string>
     <string name="html_preview_accessibility">可交互网页预览</string>
+    <string name="tap_to_view">点击查看</string>
+    <string name="remove_named_reference">移除 %1$s</string>
+    <string name="folder_unavailable">文件夹不存在或无法读取，请检查文件访问权限。</string>
+    <string name="retry">重试</string>
+    <string name="file_preview_unavailable">文件不存在或无法读取。</string>
+    <string name="file_preview_external">暂不支持预览此类型的文件，可用其他应用打开。</string>
+    <string name="open_with_app">用其他应用打开</string>
+    <string name="no_app_to_open_file">无法打开文件，请检查文件访问权限，并安装支持此文件类型的应用。</string>
+    <string name="text_preview_truncated">仅显示前 %1$d 个字符，原文件未更改。</string>
+    <string name="file_image_preview">图片：%1$s</string>
 </resources>

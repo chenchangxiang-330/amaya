@@ -59,6 +59,8 @@ class LocalReferenceListActivity : AppCompatActivity() {
                             .onSuccess { append(it); refresh(); message.value = getString(R.string.saved) }
                             .onFailure { message.value = getString(R.string.save_failed_detail, it.message.orEmpty()) }
                     } },
+                    onOpen = { path -> LocalFileViewerActivity.start(this, path, referenceText = true,
+                        title = java.io.File(path).name.substringAfter('_')) },
                     onDelete = { path -> lifecycleScope.launch {
                         val json = currentPathsJson()
                         repository.remove(ownerType, ownerId, json, path)

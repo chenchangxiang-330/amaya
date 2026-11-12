@@ -534,4 +534,14 @@
     <string name="html_preview_unavailable">This web page is missing, too large, or cannot be previewed.</string>
     <string name="html_preview_local_only">Local preview · Online resources and server connections are unavailable.</string>
     <string name="html_preview_accessibility">Interactive web page preview</string>
+    <string name="tap_to_view">Tap to view</string>
+    <string name="remove_named_reference">Remove %1$s</string>
+    <string name="folder_unavailable">This folder is missing or cannot be read. Check file access permission.</string>
+    <string name="retry">Retry</string>
+    <string name="file_preview_unavailable">This file is missing or cannot be read.</string>
+    <string name="file_preview_external">Preview is unavailable for this file type. Open it with another app.</string>
+    <string name="open_with_app">Open with another app</string>
+    <string name="no_app_to_open_file">Unable to open this file. Check file access and install an app that supports this file type.</string>
+    <string name="text_preview_truncated">Showing the first %1$d characters. The original file is unchanged.</string>
+    <string name="file_image_preview">Image: %1$s</string>
 </resources>

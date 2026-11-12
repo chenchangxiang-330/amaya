@@ -32,6 +32,7 @@ class LocalProjectActivity : AppCompatActivity() {
 
     private var hasStoragePermission by mutableStateOf(false)
     private var showStoragePermissionSheet by mutableStateOf(false)
+    private val browsePath by lazy { intent.getStringExtra(EXTRA_BROWSE_PATH) }
     private val workspaceOnly by lazy { intent.getBooleanExtra(EXTRA_WORKSPACE_ONLY, false) }
 
     private val legacyStoragePermissionLauncher =
@@ -52,6 +53,10 @@ class LocalProjectActivity : AppCompatActivity() {
         setContent {
             AmayaTheme {
                 LocalProjectBrowserScreen(
+                    initialPath = browsePath ?: Environment.getExternalStorageDirectory().absolutePath,
+                    browseOnly = browsePath != null,
+                    canReadStorage = hasStoragePermission,
+                    onOpenFile = { path -> com.amaya.intelligence.ui.activities.shared.LocalFileViewerActivity.start(this, path) },
                     onWorkspaceSelected = { workspacePath ->
                         val canonical = runCatching { java.io.File(workspacePath).canonicalPath }.getOrDefault(workspacePath)
                         if (workspaceOnly) {
@@ -143,6 +148,10 @@ class LocalProjectActivity : AppCompatActivity() {
         const val REQUEST_CODE = 1001
         const val RESULT_KEY = "workspace_path"
         const val RESULT_PROJECT_ID = "project_id"
+        private const val EXTRA_BROWSE_PATH = "browse_path"
+        fun browseWorkspace(context: android.content.Context, path: String) {
+            context.startActivity(Intent(context, LocalProjectActivity::class.java).putExtra(EXTRA_BROWSE_PATH, path))
+        }
         private const val EXTRA_WORKSPACE_ONLY = "workspace_only"
 
         fun workspacePickerIntent(context: android.content.Context): Intent =
