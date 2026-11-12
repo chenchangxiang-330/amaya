@@ -13,12 +13,11 @@ import com.amaya.intelligence.domain.models.ToolExecution
 import com.amaya.intelligence.domain.models.ToolStatus
 import com.amaya.intelligence.ui.components.shared.MessageBubble
 import com.amaya.intelligence.domain.models.UiMessage
-import com.amaya.intelligence.domain.models.MessageStep
 import com.amaya.intelligence.data.remote.api.MessageRole
 import com.amaya.intelligence.ui.theme.AmayaTheme
 import java.io.File
 
-/** Fork-only fixture host: the actual production chat tool card, with synthetic tool metadata. */
+/** Fork-only fixture host: the actual production assistant message bubble, with synthetic tool metadata. */
 class HtmlPreviewHarnessActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

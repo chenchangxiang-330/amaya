@@ -89,7 +89,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        api: [30, 33]
+        api: ${{ contains(github.event.head_commit.message, '[api-33-only]') && fromJSON('[33]') || fromJSON('[30,33]') }}
     steps:
       - uses: actions/checkout@v4
         with:

@@ -1,7 +1,10 @@
 package com.amaya.intelligence.localization
 
 import android.content.Intent
+import android.app.LocaleManager
+import android.os.Build
 import android.os.Bundle
+import android.os.LocaleList
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -18,6 +21,14 @@ class HtmlPreviewSmokeTest {
     private val context = instrumentation.targetContext
     private val device = UiDevice.getInstance(instrumentation)
     private val output = File(context.filesDir, "locale-validation").apply { mkdirs() }
+    private fun setLocale(tags: String) = instrumentation.runOnMainSync {
+        // Before an Activity exists, AppCompat has no framework context on Android 13+.
+        if (Build.VERSION.SDK_INT >= 33) {
+            context.getSystemService(LocaleManager::class.java).applicationLocales = LocaleList.forLanguageTags(tags)
+        } else {
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tags))
+        }
+    }
     private fun launch() {
         context.startActivity(Intent().setClassName(context.packageName,
             "com.amaya.intelligence.localization.HtmlPreviewHarnessActivity")
@@ -32,7 +43,7 @@ class HtmlPreviewSmokeTest {
         instrumentation.sendStatus(0, Bundle().apply { putString("stream", "SCREENSHOT: $name\n") })
     }
     private fun recorded(name: String, body: () -> Unit) {
-        try { body(); File(output,"$name-result.txt").writeText("PASS\nSynthetic generated file and tool metadata; real production tool-card/WebView UI. No live model.\n") }
+        try { body(); File(output,"$name-result.txt").writeText("PASS\nSynthetic generated file and tool metadata; real production assistant-bubble/WebView UI. No live model.\n") }
         catch (t: Throwable) { capture("failure-$name"); File(output,"$name-result.txt").writeText("FAIL: $t\n${t.stackTraceToString()}"); throw t }
     }
     @Test fun htmlWorksInsideChatCard() = recorded("inline-html") {
@@ -56,7 +67,7 @@ class HtmlPreviewSmokeTest {
             <button id="add">点击加一</button><p id="count">计数：0</p><p id="data"></p>
             <p id="network"></p><p id="boundary"></p><script src="script.js"></script></html>
         """.trimIndent())
-        instrumentation.runOnMainSync { AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("zh-CN")) }
+        setLocale("zh-CN")
         launch()
         text("本地脚本已运行")
         text("同目录数据已读取")
@@ -74,7 +85,7 @@ class HtmlPreviewSmokeTest {
         capture("inline-html-refreshed")
     }
     @Test fun htmlReopensAfterRestartAndUsesEnglishLabels() = recorded("inline-html-restart") {
-        instrumentation.runOnMainSync { AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags("en")) }
+        setLocale("en")
         launch()
         text("Expand")
         text("中文交互网页")
