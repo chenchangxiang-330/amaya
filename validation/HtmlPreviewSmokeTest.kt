@@ -55,6 +55,7 @@ class HtmlPreviewSmokeTest {
             document.getElementById('script').textContent='本地脚本已运行';
             let count=0;
             document.getElementById('add').onclick=()=>document.getElementById('count').textContent='计数：'+(++count);
+            document.getElementById('dialog').onclick=()=>{alert('网页提示正常');document.getElementById('dialog-state').textContent='提示已关闭';};
             fetch('data.json').then(r=>r.json()).then(d=>document.getElementById('data').textContent=d.text);
             fetch('https://example.invalid/private').then(()=>document.getElementById('network').textContent='意外联网')
               .catch(()=>document.getElementById('network').textContent='外部连接已阻止');
@@ -65,7 +66,7 @@ class HtmlPreviewSmokeTest {
             <!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
             <link rel="stylesheet" href="styles.css"><h2>中文交互网页</h2><p id="script"></p>
             <button id="add">点击加一</button><p id="count">计数：0</p><p id="data"></p>
-            <p id="network"></p><p id="boundary"></p><script src="script.js"></script></html>
+            <p id="network"></p><p id="boundary"></p><button id="dialog">显示网页提示</button><p id="dialog-state"></p><script src="script.js"></script></html>
         """.trimIndent())
         setLocale("zh-CN")
         launch()
@@ -78,6 +79,12 @@ class HtmlPreviewSmokeTest {
         text("计数：1") // Resizing must not recreate the page or lose form state.
         text("外部连接已阻止")
         text("目录越界已阻止")
+        text("显示网页提示").click()
+        text("网页提示正常")
+        capture("inline-html-js-dialog")
+        device.findObject(By.res("android", "button1"))!!.click()
+        text("提示已关闭")
+        text("计数：1")
         capture("inline-html-expanded-and-isolated")
         text("收起").click()
         device.findObject(By.desc("刷新网页"))!!.click()
