@@ -1,6 +1,7 @@
 package com.amaya.intelligence.ui.components.shared
 
 import android.annotation.SuppressLint
+import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
@@ -79,6 +80,8 @@ private fun HtmlPreviewWebView(document: HtmlPreviewDocument, modifier: Modifier
             settings.loadWithOverviewMode = true
             isVerticalScrollBarEnabled = true
             contentDescription = context.getString(R.string.html_preview_accessibility)
+            // Standard alert/confirm/prompt dialogs; no popup windows or native bridge.
+            webChromeClient = WebChromeClient()
             webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
                     !document.accepts(request.url.toString())
