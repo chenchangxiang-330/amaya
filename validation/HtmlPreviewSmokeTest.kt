@@ -1,14 +1,14 @@
 package com.amaya.intelligence.localization
 
 import android.content.Intent
-import android.app.LocaleManager
-import android.os.Build
 import android.os.Bundle
-import android.os.LocaleList
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.test.runner.lifecycle.ActivityLifecycleMonitorRegistry
+import androidx.test.runner.lifecycle.Stage
 import androidx.test.uiautomator.*
 import org.junit.Assert.*
 import org.junit.Test
@@ -21,18 +21,20 @@ class HtmlPreviewSmokeTest {
     private val context = instrumentation.targetContext
     private val device = UiDevice.getInstance(instrumentation)
     private val output = File(context.filesDir, "locale-validation").apply { mkdirs() }
-    private fun setLocale(tags: String) = instrumentation.runOnMainSync {
-        // Before an Activity exists, AppCompat has no framework context on Android 13+.
-        if (Build.VERSION.SDK_INT >= 33) {
-            context.getSystemService(LocaleManager::class.java).applicationLocales = LocaleList.forLanguageTags(tags)
-        } else {
-            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tags))
-        }
-    }
-    private fun launch() {
+    private fun launch(tags: String) {
         context.startActivity(Intent().setClassName(context.packageName,
             "com.amaya.intelligence.localization.HtmlPreviewHarnessActivity")
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+        text("网页已生成。")
+        // Use the same call as Settings, after the Activity has an active AppCompat delegate.
+        instrumentation.runOnMainSync {
+            val activity = ActivityLifecycleMonitorRegistry.getInstance().getActivitiesInStage(Stage.RESUMED)
+                .filterIsInstance<AppCompatActivity>().single()
+            AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tags))
+            instrumentation.sendStatus(0, Bundle().apply { putString("stream",
+                "LOCALE: package=${activity.packageName}; requested=$tags; selected=${AppCompatDelegate.getApplicationLocales().toLanguageTags()}\n") })
+        }
+        text(if (tags == "zh-CN") "展开" else "Expand")
     }
     private fun text(value: String): UiObject2 = device.wait(Until.findObject(By.text(value)), 15_000)
         ?: throw AssertionError("Missing text: $value")
@@ -68,8 +70,7 @@ class HtmlPreviewSmokeTest {
             <button id="add">点击加一</button><p id="count">计数：0</p><p id="data"></p>
             <p id="network"></p><p id="boundary"></p><button id="dialog">显示网页提示</button><p id="dialog-state"></p><script src="script.js"></script></html>
         """.trimIndent())
-        setLocale("zh-CN")
-        launch()
+        launch("zh-CN")
         text("本地脚本已运行")
         text("同目录数据已读取")
         text("点击加一").click()
@@ -92,8 +93,7 @@ class HtmlPreviewSmokeTest {
         capture("inline-html-refreshed")
     }
     @Test fun htmlReopensAfterRestartAndUsesEnglishLabels() = recorded("inline-html-restart") {
-        setLocale("en")
-        launch()
+        launch("en")
         text("Expand")
         text("中文交互网页")
         text("点击加一").click()
