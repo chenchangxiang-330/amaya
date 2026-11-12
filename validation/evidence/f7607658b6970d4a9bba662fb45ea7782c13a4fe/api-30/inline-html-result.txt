@@ -1,0 +1,2 @@
+PASS
+Synthetic generated file and tool metadata; real production tool-card/WebView UI. No live model.
