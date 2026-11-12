@@ -373,8 +373,14 @@ class LocalizationSmokeTest {
         capture("workspace-interactive-html")
         back()
         click("工作区图片.png")
-        find(By.desc("图片：工作区图片.png"))
+        val imageBounds = find(By.desc("图片：工作区图片.png")).visibleBounds
         capture("workspace-image-viewer")
+        val screenshot = android.graphics.BitmapFactory.decodeFile(File(output,"workspace-image-viewer.png").path)
+        try {
+            val pixel = screenshot.getPixel(imageBounds.centerX(), imageBounds.top + maxOf(1,imageBounds.height()/20))
+            assertTrue("The viewer must not fade image colors beneath a decorative header",
+                android.graphics.Color.red(pixel) <= 2 && android.graphics.Color.green(pixel) <= 2 && android.graphics.Color.blue(pixel) >= 250)
+        } finally { screenshot.recycle() }
         back()
         click("未知格式.bin")
         text("暂不支持预览此类型的文件，可用其他应用打开。")
