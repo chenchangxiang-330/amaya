@@ -1,0 +1,10 @@
+{
+  "source_sha": "e4065f0b1eaec8e643073af687a6c244c219b663",
+  "run": "https://github.com/chenchangxiang-330/amaya/actions/runs/43165097678",
+  "variant": "debug",
+  "emulator_abi": "x86_64",
+  "phone_abi": "arm64-v8a",
+  "application_id": "com.amaya.intelligence.debug.fix",
+  "live_model_response_tested": false,
+  "ui_scope": "project-workspace-and-reference-viewing"
+}
